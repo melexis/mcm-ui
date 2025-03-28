@@ -35,7 +35,7 @@
     progbarIsAnimated.value = true;
     statusMsg.value = 'Getting new binary...';
     return axios
-      .get(`/mcm-81339-${newFirmware.replaceAll('.', '-')}.bin`,
+      .get(`${import.meta.env.BASE_URL}mcm-81339-${newFirmware.replaceAll('.', '-')}.bin`,
         {
           responseType: 'arraybuffer',
           headers: { 'Content-Type': 'application/octet-stream' }
