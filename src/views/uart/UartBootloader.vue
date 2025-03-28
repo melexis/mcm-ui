@@ -5,6 +5,7 @@
   import ProgressBar from '../../components/ProgressBar.vue';
   import StatusMessage from '../../components/StatusMessage.vue';
 
+  import { getFileContent } from '../../js/fileHandlers';
   import { useMaster } from '../../js/usbMaster';
   import { McmUart } from '../../js/usbMcmUart';
 
@@ -65,19 +66,6 @@
       return;
     }
     nvramFile.value = files[0];
-  }
-
-  function getFileContent (file) {
-    return new Promise(function (resolve, reject) {
-      const fileReader = new FileReader();
-      fileReader.addEventListener('load', () => {
-        resolve(fileReader.result);
-      });
-      fileReader.addEventListener('error', () => {
-        reject(new Error(`Failed reading file '${file.name}' with '${fileReader.error}'`));
-      });
-      fileReader.readAsBinaryString(file);
-    });
   }
 
   function program (operation, memory) {

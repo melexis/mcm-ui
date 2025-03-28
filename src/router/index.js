@@ -66,6 +66,12 @@ const routes = [
               import(/* webpackChunkName: "app" */ '@/views/system/SystemConfig.vue'),
           },
           {
+            path: 'upgrade',
+            name: 'system-upgrade',
+            component: () =>
+              import(/* webpackChunkName: "app" */ '@/views/system/SystemUpgrade.vue'),
+          },
+          {
             path: 'reboot',
             name: 'system-reboot',
             component: () =>

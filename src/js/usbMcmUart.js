@@ -210,6 +210,7 @@ export class McmUart {
         return Promise.resolve();
       })
       .catch((error) => {
+        this.master.bulkRxCallback = null;
         this.master.mode = null;
         return Promise.reject(error);
       });

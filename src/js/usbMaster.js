@@ -7,6 +7,9 @@ const VENDOR_SPECIFIC_CLASS = 0xFF;
 
 const MCM_VENDOR_REQUEST_IDENTIFY = 0x00;
 const MCM_VENDOR_REQUEST_INFO = 0x01;
+const MCM_VENDOR_REQUEST_OTA_DO_TRANSFER = 0x80;
+const MCM_VENDOR_REQUEST_OTA_UPDATE_BOOT_PARTITION = 0x81;
+const MCM_VENDOR_REQUEST_RESTART = 0xE0;
 
 const MCM_INFO_VERSION = 0x00;
 const MCM_INFO_RESET_REASON = 0x01;
@@ -28,6 +31,8 @@ export const esp32ResetReasons = {
   12: 'Reset by JTAG'
 };
 
+let rxUpdateBuffer = '';
+
 function doTransferIn (device, endpointNumber, length) {
   return device.transferIn(endpointNumber, length);
 }
@@ -47,6 +52,24 @@ function doTransferOut (device, endpointNumber, data) {
           .then(() => { return Promise.reject(new Error('Device indicated an error occurred')) });
       }
       return Promise.reject(new Error('Transfer out gave unexpected response'));
+    });
+}
+
+function bulkRxCallbackUpdate (buffer) {
+  const newData = new TextDecoder().decode(buffer);
+  rxUpdateBuffer = rxUpdateBuffer.concat(newData);
+}
+
+function waitBulkRxLine () {
+  const newlineCharIndex = rxUpdateBuffer.indexOf('\n');
+  if (newlineCharIndex >= 0) {
+    const message = rxUpdateBuffer.slice(0, newlineCharIndex);
+    rxUpdateBuffer = rxUpdateBuffer.slice(newlineCharIndex + 1);
+    return Promise.resolve(message);
+  }
+  return new Promise(resolve => setTimeout(resolve, 50))
+    .then(() => {
+      return waitBulkRxLine()
     });
 }
 
@@ -132,7 +155,7 @@ export class Master {
         return Promise.resolve();
       }
     } else {
-      return Promise.reject(new Error('no device selected yet')); /* TODO redirect to home */
+      return Promise.reject(new Error('no device selected yet'));
     }
   }
 
@@ -285,6 +308,92 @@ export class Master {
           value = (value << 8) | result[i - 1];
         }
         return Promise.resolve(value);
+      });
+  }
+
+  restart () {
+    return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_RESTART, 0);
+  }
+
+  upgradeFirmware (fileContent, progressCallback = null) {
+    const totalSize = fileContent.byteLength;
+    const chunkSize = 10240;
+
+    function otaTransfer (master, data) {
+      const chunk = data.slice(0, chunkSize);
+      if (typeof (progressCallback) === 'function') {
+        progressCallback(totalSize - data.byteLength, totalSize);
+      }
+      return master.vendorTransferOut(chunk)
+        .then(() => {
+          return waitBulkRxLine();
+        })
+        .then((line) => {
+          if (line.includes('EMPTY')) {
+            if (data.byteLength > 0) {
+              return otaTransfer(master, data.slice(chunkSize));
+            } else {
+              return Promise.resolve();
+            }
+          } else if (line.startsWith('FAIL')) {
+            return Promise.reject(new Error('MCM reported a failure'));
+          }
+          return Promise.reject(new Error('Invalid response received'));
+        });
+    }
+
+    function waitValidation () {
+      return waitBulkRxLine()
+        .then((line) => {
+          if (line.includes('EMPTY')) {
+            /* mcm keeps sending EMPTY while waiting for transfer done so drop those */
+            return waitBulkRxLine();
+          } else if (line.includes('VALID')) {
+            return Promise.resolve();
+          } else if (line.startsWith('FAIL')) {
+            return Promise.reject(new Error('MCM reported a failure'));
+          }
+          return Promise.reject(new Error('Invalid response received'));
+        });
+    }
+
+    this.mode = 'upgrading';
+    rxUpdateBuffer = '';
+    this.bulkRxCallback = bulkRxCallbackUpdate;
+
+    // start partition data transfer
+    return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_OTA_DO_TRANSFER, 1)
+      .then(() => {
+        // do bin file transfer
+        return otaTransfer(this, fileContent);
+      })
+      .then(() => {
+        // finish transfer mode and initiate partition validation
+        return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_OTA_DO_TRANSFER, 0);
+      })
+      .then(() => {
+        // wait for validation result
+        return waitValidation();
+      })
+      .then(() => {
+        // update boot partition
+        return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_OTA_UPDATE_BOOT_PARTITION, 0);
+      })
+      .then(() => {
+        // finalize by restarting the mcm
+        return this.restart();
+      })
+      .then(() => {
+        this.bulkRxCallback = null;
+        this.mode = null;
+        rxUpdateBuffer = '';
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        this.bulkRxCallback = null;
+        this.mode = null;
+        rxUpdateBuffer = '';
+        return Promise.reject(error);
       });
   }
 }

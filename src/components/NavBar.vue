@@ -72,6 +72,13 @@
                   configuration
                 </router-link>
               </li>
+              <li>
+                <router-link
+                  class="dropdown-item"
+                  :to="{ name: 'system-upgrade' }">
+                  upgrade
+                </router-link>
+              </li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <router-link
