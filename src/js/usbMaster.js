@@ -317,7 +317,7 @@ export class Master {
 
   upgradeFirmware (fileContent, progressCallback = null) {
     const totalSize = fileContent.byteLength;
-    const chunkSize = 10240;
+    const chunkSize = 5120;
 
     function otaTransfer (master, data) {
       const chunk = data.slice(0, chunkSize);
