@@ -50,6 +50,22 @@ function doTransferOut (device, endpointNumber, data) {
     });
 }
 
+function bulkReceiver (master) {
+  return master.vendorTransferIn(64)
+    .then((data) => {
+      if (typeof (master.state.bulkRxCallback) === 'function') {
+        master.state.bulkRxCallback(data);
+      }
+      if (master.isConnected()) {
+        bulkReceiver(master);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      master.mode = 'error';
+    });
+}
+
 export class Master {
   constructor () {
     // These properties will be wrapped in a reactive object later
@@ -57,7 +73,9 @@ export class Master {
       device: null,
       vendorInterfaceNumber: null,
       vendorInEndpoint: null,
-      vendorOutEndpoint: null
+      vendorOutEndpoint: null,
+      mode: null,
+      bulkRxCallback: null
     });
   }
 
@@ -67,6 +85,22 @@ export class Master {
 
   isSelected () {
     return this.state.device !== null;
+  }
+
+  set mode (value) {
+    this.state.mode = value;
+  }
+
+  get mode () {
+    return this.state.mode;
+  }
+
+  set bulkRxCallback (value) {
+    this.state.bulkRxCallback = value;
+  }
+
+  get bulkRxCallback () {
+    return this.state.bulkRxCallback;
   }
 
   isConnected () {
@@ -91,6 +125,7 @@ export class Master {
                 this.state.device = null;
               }
             });
+            bulkReceiver(this);
             return Promise.resolve();
           });
       } else {

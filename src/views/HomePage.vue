@@ -31,6 +31,7 @@
       navigator.usb.addEventListener('disconnect', (event) => {
         const usbDisconIndex = usbDevices.value.indexOf(event.device);
         usbDevices.value.splice(usbDisconIndex, 1);
+        router.push("/webapp");
       });
     }
   });

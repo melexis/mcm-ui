@@ -46,7 +46,8 @@
   function receivedMessage (message) {
     const time = new Date();
     const type = 'rx';
-    logContent.value.push({ time, type, message });
+    const decodedMessage = new TextDecoder().decode(message);
+    logContent.value.push({ time, type, decodedMessage });
   }
 
   function clearLogContent () {

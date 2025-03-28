@@ -30,7 +30,9 @@ export const MCM_UART_RAW_PARITY = [
   'odd'
 ];
 
-let rxTempBuffer = '';
+let rxBtlBuffer = '';
+let rxBareUartBuffer = [];
+let rxBareUartCallback = null;
 
 function convertToUint8Array (value) {
   if (value > 0xFFFFFFFF || value < 0) {
@@ -52,47 +54,40 @@ function convertStringToBytes (string) {
   return retval;
 }
 
-function waitBootloadDone (master) {
-  return master.vendorTransferIn(64)
-    .then((response) => {
-      const newData = new TextDecoder().decode(response);
-      rxTempBuffer = rxTempBuffer.concat(newData);
-      const newlineCharIndex = rxTempBuffer.indexOf('\n');
-      if (newlineCharIndex >= 0) {
-        const message = rxTempBuffer.slice(0, newlineCharIndex);
-        rxTempBuffer = rxTempBuffer.slice(newlineCharIndex + 1);
-        if (message.includes('OK')) {
-          master.mode = null;
-          return Promise.resolve();
-        } else if (message.startsWith('FAIL:')) {
-          master.mode = null;
-          return Promise.reject(new Error(message.slice(message.indexOf('FAIL: ') + 6)));
-        }
-      }
-      return waitBootloadDone(master);
-    });
+function bulkRxCallbackBootloader (buffer) {
+  const newData = new TextDecoder().decode(buffer);
+  rxBtlBuffer = rxBtlBuffer.concat(newData);
 }
 
-function bareUartReceiver (mcm, rxCallback) {
-  return mcm.master.vendorTransferIn(64)
-    .then((response) => {
-      if (typeof (rxCallback) === 'function') {
-        rxCallback(new TextDecoder().decode(response));
-      }
-      if (mcm.mode !== 'bare') {
-        return Promise.resolve();
-      }
-      if (!mcm.master.isConnected()) {
-        return Promise.resolve();
-      }
-      return bareUartReceiver(mcm, rxCallback);
+function bulkRxCallbackBareUart (data) {
+  const aData = Array.from(data);
+  rxBareUartBuffer.push(...aData);
+  if (typeof (rxBareUartCallback) === 'function') {
+    const length = rxBareUartCallback(rxBareUartBuffer);
+    rxBareUartBuffer = rxBareUartBuffer.slice(length + 1);
+  }
+}
+
+function waitBootloadDone () {
+  const newlineCharIndex = rxBtlBuffer.indexOf('\n');
+  if (newlineCharIndex >= 0) {
+    const message = rxBtlBuffer.slice(0, newlineCharIndex);
+    rxBtlBuffer = rxBtlBuffer.slice(newlineCharIndex + 1);
+    if (message.includes('OK')) {
+      return Promise.resolve();
+    } else if (message.startsWith('FAIL:')) {
+      return Promise.reject(new Error(message.slice(message.indexOf('FAIL: ') + 6)));
+    }
+  }
+  return new Promise(resolve => setTimeout(resolve, 50))
+    .then(() => {
+      return waitBootloadDone()
     });
 }
 
 export class McmUart {
   constructor (master) {
     this.master = master;
-    this.mode = null;
   }
 
   disableSlavePower () {
@@ -103,42 +98,73 @@ export class McmUart {
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_SLAVE_CTRL, 1);
   }
 
+  isSlavePowerEnabled () {
+    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_SLAVE_CTRL, 0, 255)
+      .then((response) => {
+        return Promise.resolve(response[0] === 1);
+      });
+  }
+
   disableBareUartMode () {
+    rxBareUartBuffer = [];
+    rxBareUartCallback = null;
+    this.master.bulkRxCallback = null;
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BARE_UART_MODE, 0)
       .then(() => {
-        this.mode = null;
+        this.master.mode = null;
         return Promise.resolve();
       });
   }
 
   enableBareUartMode (rxCallback, bitRate, dataBits, stopBits, parity, halfDuplex) {
+    rxBareUartCallback = rxCallback;
     const payload = new Uint8Array(8);
     payload.set(convertToUint8Array(bitRate), 0); // baudrate to be used in communication
     payload[4] = MCM_UART_RAW_DATA_BITS.indexOf(dataBits); // number of data bits (0:5bits; 1:6bits; 2:7bits; 3:8bits)
     payload[5] = MCM_UART_RAW_STOP_BITS.indexOf(stopBits); // number of stop bits (1:1bit; 2:1.5bit; 3:2bits)
     payload[6] = MCM_UART_RAW_PARITY.indexOf(parity); // parity type (0:disabled; 2:even; 3:odd)
     payload[7] = halfDuplex ? 1 : 0; // 1: use half duplex communication
+    this.master.bulkRxCallback = null;
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BARE_UART_MODE, 1, payload)
       .then(() => {
-        this.mode = 'bare';
-        bareUartReceiver(this, rxCallback);
+        this.master.mode = 'bare';
+        rxBareUartBuffer = [];
+        this.master.bulkRxCallback = bulkRxCallbackBareUart;
         return Promise.resolve();
       });
   }
 
   writeToBareUart (message) {
-    if (this.mode !== 'bare') {
+    if (this.master.mode !== 'bare') {
       return Promise.reject(new Error('device needs to be put in bare uart mode first'));
     }
-    const hexBuffer = new TextEncoder().encode(message);
-    return this.master.vendorTransferOut(hexBuffer);
+    return this.master.vendorTransferOut(message);
+  }
+
+  receiveFromBareUart (length) {
+    if (this.master.mode !== 'bare') {
+      return Promise.reject(new Error('device needs to be put in bare uart mode first'));
+    }
+    if (length >= rxBareUartBuffer.length) {
+      const retval = rxBareUartBuffer;
+      rxBareUartBuffer = [];
+      return Promise.resolve(retval);
+    }
+    const retval = rxBareUartBuffer.slice(0, length);
+    rxBareUartBuffer = rxBareUartBuffer.slice(length + 1);
+    return Promise.resolve(retval);
   }
 
   bootload (hexfile, operation, memory, manualPower, bitRate, fullDuplex, txPin, flashKeys) {
+    if (this.master.mode !== null) {
+      this.disableBareUartMode();
+    }
     // enable bootloader transfer hex mode
+    rxBtlBuffer = '';
+    this.master.bulkRxCallback = bulkRxCallbackBootloader;
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO_TRANSFER, 1)
       .then(() => {
-        this.mode = 'hextransfer';
+        this.master.mode = 'hextransfer';
         return Promise.resolve();
       })
       .then(() => {
@@ -152,7 +178,7 @@ export class McmUart {
       })
       .then(() => {
         // wait for processing done
-        return waitBootloadDone(this.master);
+        return waitBootloadDone();
       })
       .then(() => {
         // do bootloading action
@@ -170,12 +196,22 @@ export class McmUart {
         payload[25] = 0; // reserved
         payload[26] = 0; // reserved
         payload[27] = 0; // reserved
+        this.master.mode = 'bootloader';
+        rxBtlBuffer = '';
         return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO, 0, payload);
       })
       .then(() => {
-        this.mode = 'bootloader';
-        rxTempBuffer = '';
-        return waitBootloadDone(this.master);
+        return waitBootloadDone();
+      })
+      .then(() => {
+        rxBtlBuffer = '';
+        this.master.bulkRxCallback = null;
+        this.master.mode = null;
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        this.master.mode = null;
+        return Promise.reject(error);
       });
   }
 
