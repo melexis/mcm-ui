@@ -26,6 +26,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 20
+          fetch-tags: true
       - name: Install npm dependencies
         run: npm install
       - name: Build distribution
