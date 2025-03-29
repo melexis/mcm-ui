@@ -28,7 +28,10 @@ function computedStatusText () {
 </script>
 
 <template>
-  <i class="status-spinner" v-bind:title="computedTitle()" /><i v-if="props.statusText.length>0">{{ computedStatusText() }}</i>
+  <i
+    class="status-spinner"
+    :title="computedTitle()"
+  /><i v-if="props.statusText.length>0">{{ computedStatusText() }}</i>
 </template>
 
 <style>

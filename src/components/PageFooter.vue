@@ -9,7 +9,9 @@ const gitVersion = gitVersionData;
       <div class="col-12">
         Copyright &copy; 2025 Melexis. All rights reserved.
         &nbsp; &nbsp;
-        <router-link :to="{ name: 'terms-of-use' }">Terms of use</router-link>
+        <router-link :to="{ name: 'terms-of-use' }">
+          Terms of use
+        </router-link>
         &nbsp; &nbsp;
         Melexis Compact Master UI v{{ gitVersion.semverString }}.
       </div>

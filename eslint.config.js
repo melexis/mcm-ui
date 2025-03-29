@@ -18,5 +18,5 @@ export default [
     noJsx: true,
   }),
 
-  ...pluginVue.configs['flat/essential']
+  ...pluginVue.configs['flat/strongly-recommended']
 ];

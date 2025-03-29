@@ -6,7 +6,8 @@
     <div class="container">
       <br>
       <h2>Melexis Terms of Use</h2>
-      <p>The content of this document is believed to be correct and accurate.
+      <p>
+        The content of this document is believed to be correct and accurate.
         However, the content of this document is furnished “as is” for
         informational use only and no representation, nor warranty is provided
         by Melexis about its accuracy, nor about the results of its
@@ -19,16 +20,16 @@
         non-infringement, and fitness for purpose. Melexis, its employees and
         agents and its affiliates’ and their employees and agents will not be
         responsible for any loss, however arising, from the use of, or reliance
-        on this document.<br />
+        on this document.<br>
         This document is subject to change without notice, and should not be
         construed as a commitment by Melexis. Therefore, before placing orders
         or prior to designing the product into a system, users or any third
         party should obtain the latest version of the relevant
-        information.<br />
+        information.<br>
         Users or any third party must determine the suitability of the product
         described in this document for its application, including the level of
         reliability required and determine whether it is fit for a particular
-        purpose.<br />
+        purpose.<br>
         This document as well as the product here described may be subject to
         export control regulations. Be aware that export might require a prior
         authorization from competent authorities. The product is not designed,
@@ -60,10 +61,10 @@
       </ol>
       <p>
         No license nor any other right or interest is granted to any of
-        Melexis’ or third party’s intellectual property rights.<br />
+        Melexis’ or third party’s intellectual property rights.<br>
         This disclaimer will be governed by and construed in accordance with
         Belgian law and any disputes relating to this disclaimer will be subject
-        to the exclusive jurisdiction of the courts of Brussels, Belgium.<br />
+        to the exclusive jurisdiction of the courts of Brussels, Belgium.<br>
         The invalidity or ineffectiveness of any of the provisions of this
         disclaimer does not affect the validity or effectiveness of the other
         provisions. The previous versions of this document are repealed.

@@ -2,27 +2,41 @@
 const props = defineProps({
   show: Boolean
 });
+const emit = defineEmits(['submit', 'cancel']);
 </script>
 
 <template>
   <Transition name="modal">
-    <div v-if="props.show" class="modal-mask">
+    <div
+      v-if="props.show"
+      class="modal-mask"
+    >
       <div class="modal-container">
         <div class="modal-header">
           <h3>
-            <slot name="header"></slot>
+            <slot name="header" />
           </h3>
         </div>
         <div class="modal-body">
-          <slot name="body"></slot>
+          <slot name="body" />
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" v-on:click="$emit('submit')">
-            <slot name="buttonSubmit">Submit</slot>
+          <button
+            class="btn btn-primary"
+            @click="emit('submit')"
+          >
+            <slot name="buttonSubmit">
+              Submit
+            </slot>
           </button>
           &nbsp;&nbsp;
-          <button class="btn btn-secondary" v-on:click="$emit('cancel')">
-            <slot name="buttonCancel">Cancel</slot>
+          <button
+            class="btn btn-secondary"
+            @click="emit('cancel')"
+          >
+            <slot name="buttonCancel">
+              Cancel
+            </slot>
           </button>
         </div>
       </div>

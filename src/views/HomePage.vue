@@ -80,35 +80,59 @@ function onForgetMcmClick (device) {
 </script>
 
 <template>
-  <div class="row" v-if="!hasWebUsb">
+  <div
+    class="row"
+    v-if="!hasWebUsb"
+  >
     <div class="container">
       <br>
       <p>Your browser does not support WebUSB which is mandatory for this web application!</p>
     </div>
   </div>
-  <div class="row" v-if="!master.isSelected() && hasWebUsb">
+  <div
+    class="row"
+    v-if="!master.isSelected() && hasWebUsb"
+  >
     <div class="container">
       <br>
       <div class="row">
         <p>Click on a tile below to open the UI.</p>
-        <div class="master-container" id="boxContainer">
+        <div
+          class="master-container"
+          id="boxContainer"
+        >
           <div
             v-for="(device, index) in usbDevices"
-            v-bind:key=index
+            :key="index"
             class="box"
-            v-on:click="onMcmClick(device)">
-            <p v-if="hasForget" v-on:click="onForgetMcmClick(device)">forget</p>
+            @click="onMcmClick(device)"
+          >
+            <p
+              v-if="hasForget"
+              @click="onForgetMcmClick(device)"
+            >
+              forget
+            </p>
             <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
-            <img src="/static/MCM-81339.png" class="img-fluid">
+            <img
+              src="/static/MCM-81339.png"
+              class="img-fluid"
+            >
           </div>
         </div>
         <p>
-          Do not see your USB device? Grant this site permission to access it <a href="#" @click.prevent="requestDevice()">here</a>.
+          Do not see your USB device? Grant this site permission to access it <a
+            href="#"
+            @click.prevent="requestDevice()"
+          >here</a>.
         </p>
       </div>
     </div>
   </div>
-  <div class="row" v-if="master.isSelected() && hasWebUsb">
+  <div
+    class="row"
+    v-if="master.isSelected() && hasWebUsb"
+  >
     <div class="container">
       <br>
       <h1>Home</h1>

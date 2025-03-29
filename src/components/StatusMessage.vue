@@ -1,12 +1,14 @@
 <script setup>
 const props = defineProps({
-  message: String,
+  message: { type: String, default: '' },
   isError: Boolean
 });
 </script>
 
 <template>
-  <p :class="{ 'status-error-text': props.isError }">{{ props.message }}</p>
+  <p :class="{ 'status-error-text': props.isError }">
+    {{ props.message }}
+  </p>
 </template>
 
 <style>

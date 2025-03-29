@@ -85,31 +85,79 @@ function toggleShow () {
     <div class="container">
       <br>
       <h1>System Configuration</h1>
-      <form v-on:submit.prevent="submit">
+      <form @submit.prevent="submit">
         <h3>Network</h3>
         <div class="form-group">
           <label for="hostname">Hostname</label>
-          <input type="text" minlength="1" maxlength="32" class="form-control" id="hostname" v-model="hostname" v-bind:disabled="!formEnabled" />
+          <input
+            type="text"
+            minlength="1"
+            maxlength="32"
+            class="form-control"
+            id="hostname"
+            v-model="hostname"
+            :disabled="!formEnabled"
+          >
         </div>
         <h3>Wi-Fi</h3>
         <div class="form-group">
           <label for="ssid">SSID</label>
-          <input type="text" minlength="1" maxlength="32" class="form-control" id="ssid" v-model="ssid" v-bind:disabled="!formEnabled" />
+          <input
+            type="text"
+            minlength="1"
+            maxlength="32"
+            class="form-control"
+            id="ssid"
+            v-model="ssid"
+            :disabled="!formEnabled"
+          >
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <div v-if="showPassword" class="input-group" id="show_password">
-            <input type="text" minlength="1" maxlength="64" class="form-control" id="password" v-model="password" v-bind:disabled="!formEnabled" />
+          <div
+            v-if="showPassword"
+            class="input-group"
+            id="show_password"
+          >
+            <input
+              type="text"
+              minlength="1"
+              maxlength="64"
+              class="form-control"
+              id="password"
+              v-model="password"
+              :disabled="!formEnabled"
+            >
             <div class="input-group-append">
-              <button class="btn btn-outline-secondary" type="button" v-on:click="toggleShow">
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                @click="toggleShow"
+              >
                 <font-awesome-icon icon="fa-solid fa-eye-slash" />
               </button>
             </div>
           </div>
-          <div v-else class="input-group" id="hide_password">
-            <input type="password" minlength="1" maxlength="64" class="form-control" id="password" v-model="password" v-bind:disabled="!formEnabled" />
+          <div
+            v-else
+            class="input-group"
+            id="hide_password"
+          >
+            <input
+              type="password"
+              minlength="1"
+              maxlength="64"
+              class="form-control"
+              id="password"
+              v-model="password"
+              :disabled="!formEnabled"
+            >
             <div class="input-group-append">
-              <button class="btn btn-outline-secondary" type="button" v-on:click="toggleShow">
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                @click="toggleShow"
+              >
                 <font-awesome-icon icon="fa-solid fa-eye" />
               </button>
             </div>
@@ -117,10 +165,18 @@ function toggleShow () {
         </div>
         <br>
         <div class="form-group">
-          <button class="btn btn-primary" v-bind:disabled="!formEnabled">Save</button>
+          <button
+            class="btn btn-primary"
+            :disabled="!formEnabled"
+          >
+            Save
+          </button>
         </div>
       </form>
-      <StatusMessage v-bind:isError="statusMsgIsError" v-bind:message="statusMsg" />
+      <StatusMessage
+        :is-error="statusMsgIsError"
+        :message="statusMsg"
+      />
     </div>
   </div>
 </template>

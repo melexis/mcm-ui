@@ -75,11 +75,25 @@ function usecToTime (usec) {
     <div class="container">
       <br>
       <h1>System Details</h1>
-      <p class="list-unstyled" v-if="!systemVersionsReceived || !systemNetworkReceived || !master.isConnected()">
-        <StatusMessage v-bind:isError="statusMsgIsError" v-bind:message="statusMsg" v-if="statusMsgIsError" />
-        <StatusSpinner title="Waiting for data" statusText="Reading information" v-if="!statusMsgIsError" />
+      <p
+        class="list-unstyled"
+        v-if="!systemVersionsReceived || !systemNetworkReceived || !master.isConnected()"
+      >
+        <StatusMessage
+          :is-error="statusMsgIsError"
+          :message="statusMsg"
+          v-if="statusMsgIsError"
+        />
+        <StatusSpinner
+          title="Waiting for data"
+          status-text="Reading information"
+          v-if="!statusMsgIsError"
+        />
       </p>
-      <ul class="list-unstyled" v-if="systemVersionsReceived && systemNetworkReceived && master.isConnected()">
+      <ul
+        class="list-unstyled"
+        v-if="systemVersionsReceived && systemNetworkReceived && master.isConnected()"
+      >
         <li><b>Version Information</b></li>
         <ul>
           <li>Type: {{ master.state.device.productName }}</li>

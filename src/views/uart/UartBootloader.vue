@@ -139,47 +139,119 @@ function computedNvramEnabled () {
       <div class="col-md-5">
         <h2>Configuration</h2>
         <form @submit.prevent>
-          <div class="form-check" id="manualpower">
-            <input class="form-check-input" type="checkbox" id="checkmanualpower" v-model="manualPower">
-            <label class="form-check-label" for="checkmanualpower">
+          <div
+            class="form-check"
+            id="manualpower"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="checkmanualpower"
+              v-model="manualPower"
+            >
+            <label
+              class="form-check-label"
+              for="checkmanualpower"
+            >
               Manual power cycling
             </label>
           </div>
-          <div class="form-check" id="fullduplex">
-            <input class="form-check-input" type="checkbox" id="checkFullDuplex" v-model="enableFullDuplex">
-            <label class="form-check-label" for="checkFullDuplex">
+          <div
+            class="form-check"
+            id="fullduplex"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="checkFullDuplex"
+              v-model="enableFullDuplex"
+            >
+            <label
+              class="form-check-label"
+              for="checkFullDuplex"
+            >
               Full duplex
             </label>
           </div>
-          <div id="txpin" v-if="enableFullDuplex">
+          <div
+            id="txpin"
+            v-if="enableFullDuplex"
+          >
             <label for="selecttxpin">TX Pin</label>
-            <select class="form-select" id="selecttxpin" v-model="selTxPin">
-              <option disabled value="">Please select tx pin</option>
-              <option value=0>IO0</option>
-              <option value=1>IO1</option>
-              <option value=2>IO2</option>
-              <option value=3>IO3</option>
-              <option value=4>IO4</option>
-              <option value=5>IO5</option>
-              <option value=6>IO6</option>
-              <option value=7>IO7</option>
+            <select
+              class="form-select"
+              id="selecttxpin"
+              v-model="selTxPin"
+            >
+              <option
+                disabled
+                value=""
+              >
+                Please select tx pin
+              </option>
+              <option value="0">
+                IO0
+              </option>
+              <option value="1">
+                IO1
+              </option>
+              <option value="2">
+                IO2
+              </option>
+              <option value="3">
+                IO3
+              </option>
+              <option value="4">
+                IO4
+              </option>
+              <option value="5">
+                IO5
+              </option>
+              <option value="6">
+                IO6
+              </option>
+              <option value="7">
+                IO7
+              </option>
             </select>
           </div>
           <div id="bitrate">
             <label for="selectbitrate">Bit rate</label>
-            <select class="form-select" v-model.number="bitRate" id="selectbitrate">
-              <option value=460800>460.8 kbps</option>
-              <option value=230400>230.4 kbps</option>
-              <option selected value=115200>115.2 kbps</option>
-              <option value=57600>57.6 kbps</option>
-              <option value=38400>38.4 kbps</option>
-              <option value=19200>19.2 kbps</option>
-              <option value=9600>9.6 kbps</option>
+            <select
+              class="form-select"
+              v-model.number="bitRate"
+              id="selectbitrate"
+            >
+              <option value="460800">
+                460.8 kbps
+              </option>
+              <option value="230400">
+                230.4 kbps
+              </option>
+              <option
+                selected
+                value="115200"
+              >
+                115.2 kbps
+              </option>
+              <option value="57600">
+                57.6 kbps
+              </option>
+              <option value="38400">
+                38.4 kbps
+              </option>
+              <option value="19200">
+                19.2 kbps
+              </option>
+              <option value="9600">
+                9.6 kbps
+              </option>
             </select>
           </div>
           <div id="flashkey">
             <label for="textFlashKey">Flash protection key</label>
-            <input class="form-control"
+            <input
+              class="form-control"
               :style="flashKeyError?'color:red':''"
               type="text"
               @change="onFlashKeyChange"
@@ -187,32 +259,75 @@ function computedNvramEnabled () {
               v-model="flashKey"
               v-maska
               data-maska="HHHH:HHHH:HHHH:HHHH:HHHH:HHHH:HHHH:HHHH"
-              data-maska-tokens="H:[0-9a-fA-F]">
+              data-maska-tokens="H:[0-9a-fA-F]"
+            >
           </div>
         </form>
       </div>
       <div class="col-md-6 offset-md-1">
         <div id="flash">
           <h2>Flash</h2>
-          <input type="file" class="mlx-file" v-on:change="onFlashFileChange" accept=".hex"/>
+          <input
+            type="file"
+            class="mlx-file"
+            @change="onFlashFileChange"
+            accept=".hex"
+          >
           <br><br>
-          <button @click="program('Program', 'Flash')" class="btn btn-primary" :disabled="!computedFlashEnabled()">Program</button>
-          <button @click="program('Verify', 'Flash')" class="btn btn-primary" :disabled="!computedFlashEnabled()">Verify</button>
+          <button
+            @click="program('Program', 'Flash')"
+            class="btn btn-primary"
+            :disabled="!computedFlashEnabled()"
+          >
+            Program
+          </button>
+          <button
+            @click="program('Verify', 'Flash')"
+            class="btn btn-primary"
+            :disabled="!computedFlashEnabled()"
+          >
+            Verify
+          </button>
         </div>
         <br>
         <div id="nvram">
           <h2>NVRAM</h2>
-          <input type="file" class="mlx-file" v-on:change="onNvramFileChange" accept=".hex"/>
+          <input
+            type="file"
+            class="mlx-file"
+            @change="onNvramFileChange"
+            accept=".hex"
+          >
           <br><br>
-          <button @click="program('Program', 'NVRAM')" class="btn btn-primary" :disabled="!computedNvramEnabled()">Program</button>
-          <button @click="program('Verify', 'NVRAM')" class="btn btn-primary" :disabled="!computedNvramEnabled()">Verify</button>
+          <button
+            @click="program('Program', 'NVRAM')"
+            class="btn btn-primary"
+            :disabled="!computedNvramEnabled()"
+          >
+            Program
+          </button>
+          <button
+            @click="program('Verify', 'NVRAM')"
+            class="btn btn-primary"
+            :disabled="!computedNvramEnabled()"
+          >
+            Verify
+          </button>
         </div>
       </div>
     </div>
     <br>
     <div class="container">
-      <ProgressBar maximum=100 v-bind:value="progbarProgress" precision=0 v-bind:isAnimated="progbarIsAnimated" />
-      <StatusMessage v-bind:isError="isErrorMsg" v-bind:message="errorMsg" />
+      <ProgressBar
+        maximum="100"
+        :value="progbarProgress"
+        precision="0"
+        :is-animated="progbarIsAnimated"
+      />
+      <StatusMessage
+        :is-error="isErrorMsg"
+        :message="errorMsg"
+      />
     </div>
   </div>
 </template>
