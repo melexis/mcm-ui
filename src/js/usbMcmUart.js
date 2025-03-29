@@ -1,4 +1,3 @@
-/* eslint-disable semi */
 const MCM_VENDOR_REQUEST_CONFIG = 0x02;
 const MCM_VENDOR_REQUEST_SLAVE_CTRL = 0x10;
 const MCM_VENDOR_REQUEST_BARE_UART_MODE = 0x20;
@@ -81,7 +80,7 @@ function waitBootloadDone () {
   }
   return new Promise(resolve => setTimeout(resolve, 50))
     .then(() => {
-      return waitBootloadDone()
+      return waitBootloadDone();
     });
 }
 

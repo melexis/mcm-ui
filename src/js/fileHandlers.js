@@ -1,8 +1,6 @@
-/* eslint-disable semi */
-
 export function getFileContent (file) {
   return new Promise(function (resolve, reject) {
-    const fileReader = new FileReader(); /* eslint-disable-line no-undef */
+    const fileReader = new FileReader();
     fileReader.addEventListener('load', () => {
       resolve(fileReader.result);
     });

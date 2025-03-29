@@ -1,83 +1,83 @@
 <script setup>
-  import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue';
 
-  import StatusMessage from '../../components/StatusMessage.vue'
+import StatusMessage from '../../components/StatusMessage.vue';
 
-  import { useMaster } from '../../js/usbMaster';
-  import { McmUart } from '../../js/usbMcmUart';
+import { useMaster } from '../../js/usbMaster';
+import { McmUart } from '../../js/usbMcmUart';
 
-  const formEnabled = ref(false);
-  const hostname = ref('');
-  const ssid = ref('');
-  const password = ref('');
-  const showPassword = ref(false);
-  const statusMsg = ref('');
-  const statusMsgIsError = ref(false);
+const formEnabled = ref(false);
+const hostname = ref('');
+const ssid = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const statusMsg = ref('');
+const statusMsgIsError = ref(false);
 
-  const currentData = {};
-  const master = useMaster();
-  const mcm = new McmUart(master);
+const currentData = {};
+const master = useMaster();
+const mcm = new McmUart(master);
 
-  onMounted(() => {
-    mcm.getHostname()
-      .then((response) => {
-        currentData.hostname = response;
-        hostname.value = response;
-        return mcm.getSsid();
-      })
-      .then((response) => {
-        currentData.ssid = response;
-        ssid.value = response;
-        return mcm.getPassword();
-      })
-      .then((response) => {
-        currentData.password = response;
-        password.value = response;
-        formEnabled.value = true;
-      })
-      .catch((error) => {
-        console.log(error);
-        statusMsg.value = `Configuration getting failed with ${error}`;
-        statusMsgIsError.value = true;
-      });
-  });
+onMounted(() => {
+  mcm.getHostname()
+    .then((response) => {
+      currentData.hostname = response;
+      hostname.value = response;
+      return mcm.getSsid();
+    })
+    .then((response) => {
+      currentData.ssid = response;
+      ssid.value = response;
+      return mcm.getPassword();
+    })
+    .then((response) => {
+      currentData.password = response;
+      password.value = response;
+      formEnabled.value = true;
+    })
+    .catch((error) => {
+      console.log(error);
+      statusMsg.value = `Configuration getting failed with ${error}`;
+      statusMsgIsError.value = true;
+    });
+});
 
-  function submit () {
-    statusMsg.value = '';
-    statusMsgIsError.value = false;
-    return Promise.resolve()
-      .then(() => {
-        if (currentData.hostname !== hostname.value) {
-          return mcm.setHostname(hostname.value)
-        }
-        return Promise.resolve();
-      })
-      .then(() => {
-        if (currentData.ssid !== ssid.value) {
-          return mcm.setSsid(ssid.value)
-        }
-        return Promise.resolve();
-      })
-      .then(() => {
-        if (currentData.password !== password.value) {
-          return mcm.setPassword(password.value)
-        }
-        return Promise.resolve();
-      })
-      .then(() => {
-        statusMsg.value = 'Configuration updated successfully';
-        statusMsgIsError.value = false;
-      })
-      .catch((error) => {
-        console.log(error);
-        statusMsg.value = `Configuration updating failed with ${error}`;
-        statusMsgIsError.value = true;
-      });
-  }
+function submit () {
+  statusMsg.value = '';
+  statusMsgIsError.value = false;
+  return Promise.resolve()
+    .then(() => {
+      if (currentData.hostname !== hostname.value) {
+        return mcm.setHostname(hostname.value);
+      }
+      return Promise.resolve();
+    })
+    .then(() => {
+      if (currentData.ssid !== ssid.value) {
+        return mcm.setSsid(ssid.value);
+      }
+      return Promise.resolve();
+    })
+    .then(() => {
+      if (currentData.password !== password.value) {
+        return mcm.setPassword(password.value);
+      }
+      return Promise.resolve();
+    })
+    .then(() => {
+      statusMsg.value = 'Configuration updated successfully';
+      statusMsgIsError.value = false;
+    })
+    .catch((error) => {
+      console.log(error);
+      statusMsg.value = `Configuration updating failed with ${error}`;
+      statusMsgIsError.value = true;
+    });
+}
 
-  function toggleShow () {
-    showPassword.value = !showPassword.value;
-  }
+function toggleShow () {
+  showPassword.value = !showPassword.value;
+}
 </script>
 
 <template>

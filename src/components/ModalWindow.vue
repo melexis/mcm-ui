@@ -1,7 +1,7 @@
 <script setup>
-  const props = defineProps({
-    show: Boolean
-  })
+const props = defineProps({
+  show: Boolean
+});
 </script>
 
 <template>

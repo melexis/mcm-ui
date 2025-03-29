@@ -1,82 +1,82 @@
 <script setup>
-  import { useRouter, useRoute } from 'vue-router';
-  import { ref, onMounted } from 'vue';
-  import { useMaster } from '../js/usbMaster';
+import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useMaster } from '../js/usbMaster';
 
-  const router = useRouter();
-  const route = useRoute();
-  const usbDevices = ref();
-  const master = useMaster();
-  const hasForget = ref(false);
-  const hasWebUsb = ref(false);
+const router = useRouter();
+const route = useRoute();
+const usbDevices = ref();
+const master = useMaster();
+const hasForget = ref(false);
+const hasWebUsb = ref(false);
 
-  onMounted(() => {
-    if (!!navigator && !! navigator.usb && typeof(navigator.usb.getDevices) === 'function') {
-      hasWebUsb.value = true;
+onMounted(() => {
+  if (!!navigator && !!navigator.usb && typeof (navigator.usb.getDevices) === 'function') {
+    hasWebUsb.value = true;
 
-      if ("forget" in USBDevice.prototype) {
-        hasForget.value = true;
-      }
+    if ('forget' in USBDevice.prototype) {
+      hasForget.value = true;
+    }
 
-      if (!master.isSelected()) {
-        navigator.usb.getDevices().then(devices => {
-          usbDevices.value = devices;
-        });
-      }
-
-      navigator.usb.addEventListener('connect', (event) => {
-        usbDevices.value.push(event.device);
-      });
-
-      navigator.usb.addEventListener('disconnect', (event) => {
-        const usbDisconIndex = usbDevices.value.indexOf(event.device);
-        usbDevices.value.splice(usbDisconIndex, 1);
-        router.push("/webapp");
+    if (!master.isSelected()) {
+      navigator.usb.getDevices().then(devices => {
+        usbDevices.value = devices;
       });
     }
-  });
 
-  function requestDevice () {
-    const filters = [
-      {
-        vendorId: 0x03E9,
-        productId: 0x4666,
-        classCode: 0xFF, // vendor-specific
-      },
-      {
-        vendorId: 0x03E9,
-        productId: 0x6F08,
-        classCode: 0xFF, // vendor-specific
-      },
-    ];
-    navigator.usb.requestDevice({ filters })
-      .then((device) => {
-        const index = usbDevices.value.indexOf(device);
-        if (index >= 0) {
-          /* device was already known */
-        } else {
-          /* fresh new device */
-          usbDevices.value.push(device);
-        }
-      })
-      .catch(error => { console.error(error); })
-  }
+    navigator.usb.addEventListener('connect', (event) => {
+      usbDevices.value.push(event.device);
+    });
 
-  function onMcmClick (device) {
-    master.setDevice(device);
-    if (typeof (route.redirectedFrom) !== 'undefined' && route.redirectedFrom.path !== '/') {
-      router.push(route.redirectedFrom.path);
-    } else {
-      master.identify()
-        .catch((error) => ( console.log(error.message) ));
-    }
+    navigator.usb.addEventListener('disconnect', (event) => {
+      const usbDisconIndex = usbDevices.value.indexOf(event.device);
+      usbDevices.value.splice(usbDisconIndex, 1);
+      router.push('/webapp');
+    });
   }
+});
 
-  function onForgetMcmClick (device) {
-    device.forget()
-      .then(() => {
-      });
+function requestDevice () {
+  const filters = [
+    {
+      vendorId: 0x03E9,
+      productId: 0x4666,
+      classCode: 0xFF, // vendor-specific
+    },
+    {
+      vendorId: 0x03E9,
+      productId: 0x6F08,
+      classCode: 0xFF, // vendor-specific
+    },
+  ];
+  navigator.usb.requestDevice({ filters })
+    .then((device) => {
+      const index = usbDevices.value.indexOf(device);
+      if (index >= 0) {
+        /* device was already known */
+      } else {
+        /* fresh new device */
+        usbDevices.value.push(device);
+      }
+    })
+    .catch(error => { console.error(error); });
+}
+
+function onMcmClick (device) {
+  master.setDevice(device);
+  if (typeof (route.redirectedFrom) !== 'undefined' && route.redirectedFrom.path !== '/') {
+    router.push(route.redirectedFrom.path);
+  } else {
+    master.identify()
+      .catch((error) => (console.log(error.message)));
   }
+}
+
+function onForgetMcmClick (device) {
+  device.forget()
+    .then(() => {
+    });
+}
 </script>
 
 <template>

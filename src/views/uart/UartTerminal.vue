@@ -1,83 +1,83 @@
 <script setup>
-  import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-  import { useMaster } from '../../js/usbMaster';
-  import { McmUart, MCM_UART_RAW_DATA_BITS, MCM_UART_RAW_STOP_BITS, MCM_UART_RAW_PARITY } from '../../js/usbMcmUart';
+import { useMaster } from '../../js/usbMaster';
+import { McmUart, MCM_UART_RAW_DATA_BITS, MCM_UART_RAW_STOP_BITS, MCM_UART_RAW_PARITY } from '../../js/usbMcmUart';
 
-  import ModalWindow from '../../components/ModalWindow.vue';
+import ModalWindow from '../../components/ModalWindow.vue';
 
-  const logContent = ref([]);
-  const txMessage = ref('');
-  const showTimestamp = ref(false);
+const logContent = ref([]);
+const txMessage = ref('');
+const showTimestamp = ref(false);
 
-  const bitRate = ref(2000000);
-  const dataBits = ref(8);
-  const stopBits = ref(1);
-  const parity = ref('disabled');
-  const fullDuplex = ref(true);
+const bitRate = ref(2000000);
+const dataBits = ref(8);
+const stopBits = ref(1);
+const parity = ref('disabled');
+const fullDuplex = ref(true);
 
-  const showModal = ref(false);
+const showModal = ref(false);
 
-  const master = useMaster();
-  const mcm = new McmUart(master);
+const master = useMaster();
+const mcm = new McmUart(master);
 
-  onMounted(() => {
-    mcm.enableBareUartMode(
-      receivedMessage,
-      bitRate.value,
-      dataBits.value,
-      stopBits.value,
-      parity.value,
-      fullDuplex.value ? 0 : 1);
-  });
+onMounted(() => {
+  mcm.enableBareUartMode(
+    receivedMessage,
+    bitRate.value,
+    dataBits.value,
+    stopBits.value,
+    parity.value,
+    fullDuplex.value ? 0 : 1);
+});
 
-  onBeforeUnmount(() => {
-    mcm.disableBareUartMode();
-  });
+onBeforeUnmount(() => {
+  mcm.disableBareUartMode();
+});
 
-  function sendMessage () {
-    mcm.writeToBareUart(txMessage.value);
-    const time = new Date();
-    const type = 'tx';
-    const message = `${txMessage.value}`;
-    logContent.value.push({ time, type, message });
+function sendMessage () {
+  mcm.writeToBareUart(txMessage.value);
+  const time = new Date();
+  const type = 'tx';
+  const message = `${txMessage.value}`;
+  logContent.value.push({ time, type, message });
+}
+
+function receivedMessage (message) {
+  const time = new Date();
+  const type = 'rx';
+  const decodedMessage = new TextDecoder().decode(message);
+  logContent.value.push({ time, type, decodedMessage });
+}
+
+function clearLogContent () {
+  logContent.value = [];
+}
+
+function computedMessage (log) {
+  if (showTimestamp.value) {
+    const hours = (`0${log.time.getHours()}`).slice(-2);
+    const minutes = (`0${log.time.getMinutes()}`).slice(-2);
+    const seconds = (`0${log.time.getSeconds()}`).slice(-2);
+    const milliseconds = (`00${log.time.getMilliseconds()}`).slice(-3);
+    return `[${hours}:${minutes}:${seconds}:${milliseconds}] ${log.message}`;
   }
+  return log.message;
+}
 
-  function receivedMessage (message) {
-    const time = new Date();
-    const type = 'rx';
-    const decodedMessage = new TextDecoder().decode(message);
-    logContent.value.push({ time, type, decodedMessage });
-  }
-
-  function clearLogContent () {
-    logContent.value = [];
-  }
-
-  function computedMessage (log) {
-    if (showTimestamp.value) {
-      const hours = (`0${log.time.getHours()}`).slice(-2);
-      const minutes = (`0${log.time.getMinutes()}`).slice(-2);
-      const seconds = (`0${log.time.getSeconds()}`).slice(-2);
-      const milliseconds = (`00${log.time.getMilliseconds()}`).slice(-3);
-      return `[${hours}:${minutes}:${seconds}:${milliseconds}] ${log.message}`;
-    }
-    return log.message;
-  }
-
-  function configDone () {
-    showModal.value = false;
-    mcm.disableBareUartMode()
-      .then(() => {
-        mcm.enableBareUartMode(
-          receivedMessage,
-          bitRate.value,
-          dataBits.value,
-          stopBits.value,
-          parity.value,
-          fullDuplex.value ? 0 : 1);
-      });
-  }
+function configDone () {
+  showModal.value = false;
+  mcm.disableBareUartMode()
+    .then(() => {
+      mcm.enableBareUartMode(
+        receivedMessage,
+        bitRate.value,
+        dataBits.value,
+        stopBits.value,
+        parity.value,
+        fullDuplex.value ? 0 : 1);
+    });
+}
 </script>
 
 <template>

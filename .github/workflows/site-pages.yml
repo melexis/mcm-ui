@@ -1,4 +1,4 @@
-name: Deploy site to GitHub Pages dependencies preinstalled
+name: Build and deploy to Github Pages
 
 on:
   push:
@@ -17,6 +17,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Static job
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install npm dependencies
+        run: npm install
+      - name: Static analysis
+        id: static
+        run: npm run lint
+
   # Build job
   build:
     runs-on: ubuntu-latest

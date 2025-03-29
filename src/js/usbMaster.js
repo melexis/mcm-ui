@@ -1,4 +1,3 @@
-/* eslint-disable semi */
 import { reactive, inject } from 'vue';
 
 const MasterSymbol = Symbol('Master');
@@ -49,7 +48,7 @@ function doTransferOut (device, endpointNumber, data) {
       } else if (result.status === 'stall') {
         /* device indicated an error */
         return this.state.device.clearHalt('out', endpointNumber)
-          .then(() => { return Promise.reject(new Error('Device indicated an error occurred')) });
+          .then(() => { return Promise.reject(new Error('Device indicated an error occurred')); });
       }
       return Promise.reject(new Error('Transfer out gave unexpected response'));
     });
@@ -69,7 +68,7 @@ function waitBulkRxLine () {
   }
   return new Promise(resolve => setTimeout(resolve, 50))
     .then(() => {
-      return waitBulkRxLine()
+      return waitBulkRxLine();
     });
 }
 
@@ -199,7 +198,7 @@ export class Master {
 
   vendorTransferIn (length) {
     return this.connect()
-      .then(() => { return doTransferIn(this.state.device, this.state.vendorInEndpoint, length) })
+      .then(() => { return doTransferIn(this.state.device, this.state.vendorInEndpoint, length); })
       .then((result) => {
         if (result.status === 'ok') {
           /* transfer went all fine */
@@ -207,7 +206,7 @@ export class Master {
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('in', this.state.vendorInEndpoint)
-            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')) });
+            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')); });
         } else if (result.status === 'babble') {
           /* device returned more data than expected */
           return Promise.reject(new Error('Device returned more data than expected'));
@@ -221,7 +220,7 @@ export class Master {
     return this.connect()
       .then(() => {
         return doTransferOut(this.state.device, this.state.vendorOutEndpoint, payload);
-      })
+      });
   }
 
   vendorControlTransferIn (bRequest, wValue, length) {
@@ -243,7 +242,7 @@ export class Master {
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('in', this.state.vendorInEndpoint)
-            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')) });
+            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')); });
         } else if (result.status === 'babble') {
           /* device returned more data than expected */
           return Promise.reject(new Error('device returned more data than expected'));
@@ -275,7 +274,7 @@ export class Master {
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('out', this.state.vendorOutEndpoint)
-            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')) });
+            .then(() => { return Promise.reject(new Error('Device indicated an error occurred')); });
         }
         return Promise.reject(new Error('transfer out gave unexpected response'));
       });
