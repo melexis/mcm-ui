@@ -1,29 +1,32 @@
 <script setup>
-  import { ref, watch } from 'vue'
-  const props = defineProps({
-    content: Array,
-    height: { type: String, default: '30em' }
-  });
-  const emit = defineEmits(['clear']);
-  const txtLogging = ref(null);
-  const logAutoScroll = ref(true);
-  watch(
-    function () { return props.content.length; },
-    function () {
-      if (logAutoScroll.value === true) {
-        setTimeout(function () {
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  content: Array,
+  height: { type: String, default: '30em' }
+});
+const emit = defineEmits(['clear']);
+const txtLogging = ref(null);
+const logAutoScroll = ref(true);
+
+watch(
+  function () { return props.content.length; },
+  function () {
+    if (logAutoScroll.value === true) {
+      setTimeout(function () {
         txtLogging.value.scrollTop = txtLogging.value.scrollHeight;
-        }, 50);
-      }
+      }, 50);
     }
-  )
-  function computedMessage (log) {
-    const hours = (`0${log.time.getHours()}`).slice(-2);
-    const minutes = (`0${log.time.getMinutes()}`).slice(-2);
-    const seconds = (`0${log.time.getSeconds()}`).slice(-2);
-    const milliseconds = (`00${log.time.getMilliseconds()}`).slice(-3);
-    return `[{${hours}:${minutes}:${seconds}:${milliseconds}}] ${log.message}`;
   }
+);
+
+function computedMessage (log) {
+  const hours = (`0${log.time.getHours()}`).slice(-2);
+  const minutes = (`0${log.time.getMinutes()}`).slice(-2);
+  const seconds = (`0${log.time.getSeconds()}`).slice(-2);
+  const milliseconds = (`00${log.time.getMilliseconds()}`).slice(-3);
+  return `[{${hours}:${minutes}:${seconds}:${milliseconds}}] ${log.message}`;
+}
 </script>
 
 <template>

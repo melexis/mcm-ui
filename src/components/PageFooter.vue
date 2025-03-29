@@ -1,6 +1,6 @@
 <script setup>
-  import * as git_version_data from '../git-version.json'
-  const git_version = git_version_data;
+import * as gitVersionData from '../git-version.json';
+const gitVersion = gitVersionData;
 </script>
 
 <template>
@@ -11,7 +11,7 @@
         &nbsp; &nbsp;
         <router-link :to="{ name: 'terms-of-use' }">Terms of use</router-link>
         &nbsp; &nbsp;
-        Melexis Compact Master UI v{{ git_version.semverString }}.
+        Melexis Compact Master UI v{{ gitVersion.semverString }}.
       </div>
     </div>
   </footer>

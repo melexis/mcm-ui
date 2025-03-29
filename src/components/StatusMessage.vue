@@ -1,8 +1,8 @@
 <script setup>
-  const props = defineProps({
-    message: String,
-    isError: Boolean
-  });
+const props = defineProps({
+  message: String,
+  isError: Boolean
+});
 </script>
 
 <template>

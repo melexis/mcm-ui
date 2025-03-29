@@ -14,6 +14,8 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { faLink, faLinkSlash, faEyeSlash, faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
+import 'bootstrap/dist/js/bootstrap.min.js';
+
 library.add(faLink, faLinkSlash, faEyeSlash, faEye);
 
 const app = createApp(App);
@@ -25,5 +27,3 @@ app.use(VueAxios, axios);
 app.use(MasterPlugin);
 
 app.mount('#app');
-
-import 'bootstrap/dist/js/bootstrap.min.js';

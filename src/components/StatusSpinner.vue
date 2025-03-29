@@ -1,30 +1,30 @@
 <script setup>
-  import { ref } from 'vue'
-  const props = defineProps({
-    title: {
-      type: String,
-      default: ''
-    },
-    statusText: {
-      type: String,
-      default: ''
-    }
-  });
-  const wait = ref('.');
-  setInterval(
-    () => {
-      wait.value += '.';
+import { ref } from 'vue';
+const props = defineProps({
+  title: {
+    type: String,
+    default: ''
+  },
+  statusText: {
+    type: String,
+    default: ''
+  }
+});
+const wait = ref('.');
+setInterval(
+  () => {
+    wait.value += '.';
     if (wait.value.length > 3) {
-        wait.value = '.';
+      wait.value = '.';
     }
-    },
-    250);
-  function computedTitle() {
-    return `${props.title}`;
-  }
-  function computedStatusText() {
-    return `${props.statusText} ${wait.value}`;
-  }
+  },
+  250);
+function computedTitle () {
+  return `${props.title}`;
+}
+function computedStatusText () {
+  return `${props.statusText} ${wait.value}`;
+}
 </script>
 
 <template>

@@ -1,29 +1,29 @@
 <script setup>
-  import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue';
 
-  import { useRouter } from 'vue-router';
-  import { useMaster } from '../../js/usbMaster';
+import { useRouter } from 'vue-router';
+import { useMaster } from '../../js/usbMaster';
 
-  const timeLeft = ref(10);
-  const wait = ref('.');
+const timeLeft = ref(10);
+const wait = ref('.');
 
-  const master = useMaster();
-  const router = useRouter();
+const master = useMaster();
+const router = useRouter();
 
-  const timer = setInterval(function () {
-    timeLeft.value -= 0.25;
-    if (timeLeft.value <= 0) {
-      clearInterval(timer);
-      router.push("/webapp");
-    }
-    wait.value += '.';
-    if (wait.value.length > 3) {
-      wait.value = '.';
-    }
-  }, 250);
-  onMounted(function () {
-    master.reboot();
-  });
+const timer = setInterval(function () {
+  timeLeft.value -= 0.25;
+  if (timeLeft.value <= 0) {
+    clearInterval(timer);
+    router.push('/webapp');
+  }
+  wait.value += '.';
+  if (wait.value.length > 3) {
+    wait.value = '.';
+  }
+}, 250);
+onMounted(function () {
+  master.reboot();
+});
 </script>
 
 <template>

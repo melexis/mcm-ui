@@ -1,69 +1,69 @@
 <script setup>
-  import { ref, onMounted } from 'vue';
-  import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-  import ProgressBar from '../../components/ProgressBar.vue';
-  import StatusMessage from '../../components/StatusMessage.vue';
+import ProgressBar from '../../components/ProgressBar.vue';
+import StatusMessage from '../../components/StatusMessage.vue';
 
-  import { useMaster } from '../../js/usbMaster';
+import { useMaster } from '../../js/usbMaster';
 
-  const master = useMaster();
-  const working = ref(false);
-  const statusMsg = ref('');
-  const statusMsgIsError = ref(false);
-  const progbarProgress = ref(0);
-  const progbarIsAnimated = ref(false);
-  const firmwareVersion = ref('');
-  const newFirmware = 'v0.13.1';
+const master = useMaster();
+const working = ref(false);
+const statusMsg = ref('');
+const statusMsgIsError = ref(false);
+const progbarProgress = ref(0);
+const progbarIsAnimated = ref(false);
+const firmwareVersion = ref('');
+const newFirmware = 'v0.13.1';
 
-  onMounted(() => {
-    master.getVersion()
-      .then((version) => {
-        firmwareVersion.value = version;
-      });
-  });
+onMounted(() => {
+  master.getVersion()
+    .then((version) => {
+      firmwareVersion.value = version;
+    });
+});
 
-  function progressCallback (step, total) {
-    progbarProgress.value = 100 * step / total;
-  }
+function progressCallback (step, total) {
+  progbarProgress.value = 100 * step / total;
+}
 
-  function upgradeClicked () {
-    working.value = true;
-    statusMsg.value = '';
-    statusMsgIsError.value = false;
-    progbarProgress.value = 0;
-    progbarIsAnimated.value = true;
-    statusMsg.value = 'Getting new binary...';
-    return axios
-      .get(`${import.meta.env.BASE_URL}mcm-81339-${newFirmware.replaceAll('.', '-')}.bin`,
-        {
-          responseType: 'arraybuffer',
-          headers: { 'Content-Type': 'application/octet-stream' }
-        })
-      .then((response) => {
-        statusMsg.value = 'Transferring binary...';
-        return master.upgradeFirmware(response.data, progressCallback);
+function upgradeClicked () {
+  working.value = true;
+  statusMsg.value = '';
+  statusMsgIsError.value = false;
+  progbarProgress.value = 0;
+  progbarIsAnimated.value = true;
+  statusMsg.value = 'Getting new binary...';
+  return axios
+    .get(`${import.meta.env.BASE_URL}mcm-81339-${newFirmware.replaceAll('.', '-')}.bin`,
+      {
+        responseType: 'arraybuffer',
+        headers: { 'Content-Type': 'application/octet-stream' }
       })
-      .then(() => {
-        statusMsg.value = 'Upgrade successful';
-        progbarProgress.value = 100;
-        progbarIsAnimated.value = false;
-        working.value = false;
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.log(error);
-        statusMsg.value = `Upgrading failed with ${error}`;
-        statusMsgIsError.value = true;
-        progbarProgress.value = 0;
-        progbarIsAnimated.value = false;
-        working.value = false;
-      });
-  }
+    .then((response) => {
+      statusMsg.value = 'Transferring binary...';
+      return master.upgradeFirmware(response.data, progressCallback);
+    })
+    .then(() => {
+      statusMsg.value = 'Upgrade successful';
+      progbarProgress.value = 100;
+      progbarIsAnimated.value = false;
+      working.value = false;
+      return Promise.resolve();
+    })
+    .catch((error) => {
+      console.log(error);
+      statusMsg.value = `Upgrading failed with ${error}`;
+      statusMsgIsError.value = true;
+      progbarProgress.value = 0;
+      progbarIsAnimated.value = false;
+      working.value = false;
+    });
+}
 
-  function computedBusy () {
-    return working.value;
-  }
+function computedBusy () {
+  return working.value;
+}
 </script>
 
 <template>

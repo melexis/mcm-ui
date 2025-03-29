@@ -81,12 +81,12 @@ const routes = [
       },
     ],
   },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
-})
+});
 
 router.beforeEach(async (to) => {
   if (to.meta.requiresMaster) {
@@ -95,9 +95,9 @@ router.beforeEach(async (to) => {
       return {
         path: '/webapp',
         query: { redirect: to.path },
-      }
+      };
     }
   }
-})
+});
 
-export default router
+export default router;

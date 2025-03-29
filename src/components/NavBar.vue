@@ -1,21 +1,21 @@
 <script setup>
-  import { useRouter } from 'vue-router';
-  import { useMaster } from '../js/usbMaster';
+import { useRouter } from 'vue-router';
+import { useMaster } from '../js/usbMaster';
 
-  const router = useRouter();
-  const master = useMaster();
+const router = useRouter();
+const master = useMaster();
 
-  function computedTitle () {
-    if (master.isSelected()) {
-      return 'Melexis Compact Master 81339';
-    }
-    return 'Melexis Compact Master';
+function computedTitle () {
+  if (master.isSelected()) {
+    return 'Melexis Compact Master 81339';
   }
+  return 'Melexis Compact Master';
+}
 
-  function disconnect () {
-    master.disconnect()
-      .then(() => router.push("/webapp"));
-  }
+function disconnect () {
+  master.disconnect()
+    .then(() => router.push('/webapp'));
+}
 </script>
 
 <template>
