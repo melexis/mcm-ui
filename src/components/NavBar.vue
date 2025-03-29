@@ -23,44 +23,76 @@ function disconnect () {
     <div class="container">
       <router-link
         class="navbar-brand text-decoration-none"
-        to="/webapp">
+        to="/webapp"
+      >
         {{ computedTitle() }}
       </router-link>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false">
-        <span class="navbar-toggler-icon"></span>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+        aria-controls="navbarContent"
+        aria-expanded="false"
+      >
+        <span class="navbar-toggler-icon" />
       </button>
-      <div class="collapse navbar-collapse" id="navbarContent" v-if="master.isSelected()">
+      <div
+        v-if="master.isSelected()"
+        id="navbarContent"
+        class="collapse navbar-collapse"
+      >
         <ul class="navbar-nav ms-auto">
           <li class="nav-item dropdown active">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
               UART
             </a>
             <ul class="dropdown-menu">
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'uart-bootloader' }">
+                  :to="{ name: 'uart-bootloader' }"
+                >
                   bootloader
                 </router-link>
               </li>
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'uart-terminal' }">
+                  :to="{ name: 'uart-terminal' }"
+                >
                   terminal
                 </router-link>
               </li>
             </ul>
           </li>
           <li class="nav-item dropdown active">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown0" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a
+              id="navbarDropdown0"
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
               System
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <div
+              class="dropdown-menu"
+              aria-labelledby="navbarDropdown"
+            >
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'system-details' }">
+                  :to="{ name: 'system-details' }"
+                >
                   details
                 </router-link>
               </li>
@@ -68,14 +100,16 @@ function disconnect () {
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'system-config' }">
+                  :to="{ name: 'system-config' }"
+                >
                   configuration
                 </router-link>
               </li>
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'system-upgrade' }">
+                  :to="{ name: 'system-upgrade' }"
+                >
                   upgrade
                 </router-link>
               </li>
@@ -83,13 +117,19 @@ function disconnect () {
               <li>
                 <router-link
                   class="dropdown-item"
-                  :to="{ name: 'system-reboot' }">
-                reboot
+                  :to="{ name: 'system-reboot' }"
+                >
+                  reboot
                 </router-link>
               </li>
             </div>
           </li>
-          <a class="nav-link" href="#" role="button" @click="disconnect()">
+          <a
+            class="nav-link"
+            href="#"
+            role="button"
+            @click="disconnect()"
+          >
             Disconnect
           </a>
         </ul>

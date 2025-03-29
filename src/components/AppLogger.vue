@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue';
 
 const props = defineProps({
-  content: Array,
+  content: { type: Array, default: new Array([]) },
   height: { type: String, default: '30em' }
 });
 const emit = defineEmits(['clear']);
@@ -30,13 +30,37 @@ function computedMessage (log) {
 </script>
 
 <template>
-  <p><b>Logging</b><span style="float:right;"><a href="#" v-on:click="emit('clear')">clear</a></span></p>
-  <div class="logging-box" :style="{ 'height': props.height }" ref="txtLogging">
-    <template v-for="log in props.content" :key="log.time">
-      <span :class="{ 'log-error-text': log.level==='error', 'log-warning-text': log.level==='warning' }" v-html="computedMessage(log)"></span><br>
+  <p>
+    <b>Logging</b><span style="float:right;"><a
+      href="#"
+      @click="emit('clear')"
+    >clear</a></span>
+  </p>
+  <div
+    ref="txtLogging"
+    class="logging-box"
+    :style="{ 'height': props.height }"
+  >
+    <template
+      v-for="log in props.content"
+      :key="log.time"
+    >
+      <span
+        :class="{ 'log-error-text': log.level==='error', 'log-warning-text': log.level==='warning' }"
+        v-html="computedMessage(log)"
+      /><br>
+    </template>
   </div>
-  <input class="form-check-input" type="checkbox" id="autoscroll" v-model="logAutoScroll" />
-  <label class="form-check-label" for="autoscroll">Autoscroll</label>
+  <input
+    id="autoscroll"
+    v-model="logAutoScroll"
+    class="form-check-input"
+    type="checkbox"
+  >
+  <label
+    class="form-check-label"
+    for="autoscroll"
+  >Autoscroll</label>
 </template>
 
 <style>

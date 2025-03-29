@@ -41,13 +41,18 @@ function computedText () {
 </script>
 
 <template>
-  <div class="progress" role="progressbar"
-        v-bind:aria-valuenow="computedProgress().toString()"
-        aria-valuemin="0"
-        v-bind:aria-valuemax="computedMax().toString()">
-    <div class="progress-bar"
-        v-bind:class="{ 'progress-bar-striped': isAnimated, 'progress-bar-animated': isAnimated }"
-        v-bind:style="progressBarStyles()">
+  <div
+    class="progress"
+    role="progressbar"
+    :aria-valuenow="computedProgress().toString()"
+    aria-valuemin="0"
+    :aria-valuemax="computedMax().toString()"
+  >
+    <div
+      class="progress-bar"
+      :class="{ 'progress-bar-striped': isAnimated, 'progress-bar-animated': isAnimated }"
+      :style="progressBarStyles()"
+    >
       {{ computedText() }}
     </div>
   </div>

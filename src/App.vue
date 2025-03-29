@@ -15,7 +15,7 @@ export default {
     <NavBar />
     <div class="main">
       <div class="container">
-        <router-view></router-view>
+        <router-view />
       </div>
     </div>
     <PageFooter />

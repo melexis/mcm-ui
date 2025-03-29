@@ -73,12 +73,26 @@ function computedBusy () {
       <h1>System Upgrade</h1>
       <p>Press 'Upgrade' to upgrade the firmware from {{ firmwareVersion }} to {{ newFirmware }}.</p>
       <div class="form-group">
-        <button class="btn btn-primary" v-on:click="upgradeClicked" v-bind:disabled="computedBusy()">Upgrade</button>
+        <button
+          class="btn btn-primary"
+          :disabled="computedBusy()"
+          @click="upgradeClicked"
+        >
+          Upgrade
+        </button>
       </div>
       <br>
       <div class="container">
-        <ProgressBar maximum=100 v-bind:value="progbarProgress" precision=0 v-bind:isAnimated="progbarIsAnimated" />
-        <StatusMessage v-bind:isError="statusMsgIsError" v-bind:message="statusMsg" />
+        <ProgressBar
+          maximum="100"
+          :value="progbarProgress"
+          precision="0"
+          :is-animated="progbarIsAnimated"
+        />
+        <StatusMessage
+          :is-error="statusMsgIsError"
+          :message="statusMsg"
+        />
       </div>
     </div>
   </div>
