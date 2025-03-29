@@ -168,8 +168,7 @@ export class McmUart {
       })
       .then(() => {
         // send hexfile
-        const hexBuffer = new TextEncoder().encode(hexfile);
-        return this.master.vendorTransferOut(hexBuffer);
+        return this.master.vendorTransferOut(hexfile);
       })
       .then(() => {
         // disable bootloader transfer hex mode

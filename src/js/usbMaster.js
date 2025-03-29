@@ -75,8 +75,8 @@ function waitBulkRxLine () {
 function bulkReceiver (master) {
   return master.vendorTransferIn(64)
     .then((data) => {
-      if (typeof (master.state.bulkRxCallback) === 'function') {
-        master.state.bulkRxCallback(data);
+      if (typeof (master.bulkRxCallback) === 'function') {
+        master.bulkRxCallback(data);
       }
       if (master.isConnected()) {
         bulkReceiver(master);
