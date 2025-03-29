@@ -140,14 +140,14 @@ function computedNvramEnabled () {
         <h2>Configuration</h2>
         <form @submit.prevent>
           <div
-            class="form-check"
             id="manualpower"
+            class="form-check"
           >
             <input
-              class="form-check-input"
-              type="checkbox"
               id="checkmanualpower"
               v-model="manualPower"
+              class="form-check-input"
+              type="checkbox"
             >
             <label
               class="form-check-label"
@@ -157,14 +157,14 @@ function computedNvramEnabled () {
             </label>
           </div>
           <div
-            class="form-check"
             id="fullduplex"
+            class="form-check"
           >
             <input
-              class="form-check-input"
-              type="checkbox"
               id="checkFullDuplex"
               v-model="enableFullDuplex"
+              class="form-check-input"
+              type="checkbox"
             >
             <label
               class="form-check-label"
@@ -174,14 +174,14 @@ function computedNvramEnabled () {
             </label>
           </div>
           <div
-            id="txpin"
             v-if="enableFullDuplex"
+            id="txpin"
           >
             <label for="selecttxpin">TX Pin</label>
             <select
-              class="form-select"
               id="selecttxpin"
               v-model="selTxPin"
+              class="form-select"
             >
               <option
                 disabled
@@ -218,9 +218,9 @@ function computedNvramEnabled () {
           <div id="bitrate">
             <label for="selectbitrate">Bit rate</label>
             <select
-              class="form-select"
-              v-model.number="bitRate"
               id="selectbitrate"
+              v-model.number="bitRate"
+              class="form-select"
             >
               <option value="460800">
                 460.8 kbps
@@ -251,15 +251,15 @@ function computedNvramEnabled () {
           <div id="flashkey">
             <label for="textFlashKey">Flash protection key</label>
             <input
-              class="form-control"
-              :style="flashKeyError?'color:red':''"
-              type="text"
-              @change="onFlashKeyChange"
               id="textFlashKey"
               v-model="flashKey"
               v-maska
+              class="form-control"
+              :style="flashKeyError?'color:red':''"
+              type="text"
               data-maska="HHHH:HHHH:HHHH:HHHH:HHHH:HHHH:HHHH:HHHH"
               data-maska-tokens="H:[0-9a-fA-F]"
+              @change="onFlashKeyChange"
             >
           </div>
         </form>
@@ -270,21 +270,21 @@ function computedNvramEnabled () {
           <input
             type="file"
             class="mlx-file"
-            @change="onFlashFileChange"
             accept=".hex"
+            @change="onFlashFileChange"
           >
           <br><br>
           <button
-            @click="program('Program', 'Flash')"
             class="btn btn-primary"
             :disabled="!computedFlashEnabled()"
+            @click="program('Program', 'Flash')"
           >
             Program
           </button>
           <button
-            @click="program('Verify', 'Flash')"
             class="btn btn-primary"
             :disabled="!computedFlashEnabled()"
+            @click="program('Verify', 'Flash')"
           >
             Verify
           </button>
@@ -295,21 +295,21 @@ function computedNvramEnabled () {
           <input
             type="file"
             class="mlx-file"
-            @change="onNvramFileChange"
             accept=".hex"
+            @change="onNvramFileChange"
           >
           <br><br>
           <button
-            @click="program('Program', 'NVRAM')"
             class="btn btn-primary"
             :disabled="!computedNvramEnabled()"
+            @click="program('Program', 'NVRAM')"
           >
             Program
           </button>
           <button
-            @click="program('Verify', 'NVRAM')"
             class="btn btn-primary"
             :disabled="!computedNvramEnabled()"
+            @click="program('Verify', 'NVRAM')"
           >
             Verify
           </button>

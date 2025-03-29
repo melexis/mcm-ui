@@ -38,9 +38,9 @@ function disconnect () {
         <span class="navbar-toggler-icon" />
       </button>
       <div
-        class="collapse navbar-collapse"
-        id="navbarContent"
         v-if="master.isSelected()"
+        id="navbarContent"
+        class="collapse navbar-collapse"
       >
         <ul class="navbar-nav ms-auto">
           <li class="nav-item dropdown active">
@@ -74,9 +74,9 @@ function disconnect () {
           </li>
           <li class="nav-item dropdown active">
             <a
+              id="navbarDropdown0"
               class="nav-link dropdown-toggle"
               href="#"
-              id="navbarDropdown0"
               role="button"
               data-bs-toggle="dropdown"
               aria-haspopup="true"

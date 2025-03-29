@@ -37,9 +37,9 @@ function computedMessage (log) {
     >clear</a></span>
   </p>
   <div
+    ref="txtLogging"
     class="logging-box"
     :style="{ 'height': props.height }"
-    ref="txtLogging"
   >
     <template
       v-for="log in props.content"
@@ -52,10 +52,10 @@ function computedMessage (log) {
     </template>
   </div>
   <input
-    class="form-check-input"
-    type="checkbox"
     id="autoscroll"
     v-model="logAutoScroll"
+    class="form-check-input"
+    type="checkbox"
   >
   <label
     class="form-check-label"

@@ -90,12 +90,12 @@ function toggleShow () {
         <div class="form-group">
           <label for="hostname">Hostname</label>
           <input
+            id="hostname"
+            v-model="hostname"
             type="text"
             minlength="1"
             maxlength="32"
             class="form-control"
-            id="hostname"
-            v-model="hostname"
             :disabled="!formEnabled"
           >
         </div>
@@ -103,12 +103,12 @@ function toggleShow () {
         <div class="form-group">
           <label for="ssid">SSID</label>
           <input
+            id="ssid"
+            v-model="ssid"
             type="text"
             minlength="1"
             maxlength="32"
             class="form-control"
-            id="ssid"
-            v-model="ssid"
             :disabled="!formEnabled"
           >
         </div>
@@ -116,16 +116,16 @@ function toggleShow () {
           <label for="password">Password</label>
           <div
             v-if="showPassword"
-            class="input-group"
             id="show_password"
+            class="input-group"
           >
             <input
+              id="password"
+              v-model="password"
               type="text"
               minlength="1"
               maxlength="64"
               class="form-control"
-              id="password"
-              v-model="password"
               :disabled="!formEnabled"
             >
             <div class="input-group-append">
@@ -140,16 +140,16 @@ function toggleShow () {
           </div>
           <div
             v-else
-            class="input-group"
             id="hide_password"
+            class="input-group"
           >
             <input
+              id="password"
+              v-model="password"
               type="password"
               minlength="1"
               maxlength="64"
               class="form-control"
-              id="password"
-              v-model="password"
               :disabled="!formEnabled"
             >
             <div class="input-group-append">

@@ -110,10 +110,10 @@ function configDone () {
           <label for="textTransmit">Transmit</label>
           <div class="input-group">
             <input
-              class="form-control"
-              type="text"
               id="textTransmit"
               v-model="txMessage"
+              class="form-control"
+              type="text"
             >
             <div class="input-group-append">
               <button
@@ -141,10 +141,10 @@ function configDone () {
       <template #body>
         <div id="fullduplex">
           <input
-            class="form-check-input"
-            type="checkbox"
             id="checkFullDuplex"
             v-model="fullDuplex"
+            class="form-check-input"
+            type="checkbox"
           >
           <label
             class="form-check-label"
@@ -156,9 +156,9 @@ function configDone () {
         <div id="bitrate">
           <label for="selectbitrate">Bit rate</label>
           <select
-            class="form-select"
-            v-model.number="bitRate"
             id="selectbitrate"
+            v-model.number="bitRate"
+            class="form-select"
           >
             <option value="2000000">
               2.0 Mbps
@@ -207,9 +207,9 @@ function configDone () {
         <div id="databits">
           <label for="selectdatabits">Data bits</label>
           <select
-            class="form-select"
-            v-model.number="dataBits"
             id="selectdatabits"
+            v-model.number="dataBits"
+            class="form-select"
           >
             <template
               v-for="[index, option] in MCM_UART_RAW_DATA_BITS.entries()"
@@ -227,9 +227,9 @@ function configDone () {
         <div id="stopbits">
           <label for="selectstopbits">Stop bits</label>
           <select
-            class="form-select"
-            v-model.number="stopBits"
             id="selectstopbits"
+            v-model.number="stopBits"
+            class="form-select"
           >
             <template
               v-for="[index, option] in MCM_UART_RAW_STOP_BITS.entries()"
@@ -247,9 +247,9 @@ function configDone () {
         <div id="parity">
           <label for="selectparity">Parity</label>
           <select
-            class="form-select"
-            v-model.number="parity"
             id="selectparity"
+            v-model.number="parity"
+            class="form-select"
           >
             <template
               v-for="[index, option] in MCM_UART_RAW_PARITY.entries()"

@@ -81,8 +81,8 @@ function onForgetMcmClick (device) {
 
 <template>
   <div
-    class="row"
     v-if="!hasWebUsb"
+    class="row"
   >
     <div class="container">
       <br>
@@ -90,16 +90,16 @@ function onForgetMcmClick (device) {
     </div>
   </div>
   <div
-    class="row"
     v-if="!master.isSelected() && hasWebUsb"
+    class="row"
   >
     <div class="container">
       <br>
       <div class="row">
         <p>Click on a tile below to open the UI.</p>
         <div
-          class="master-container"
           id="boxContainer"
+          class="master-container"
         >
           <div
             v-for="(device, index) in usbDevices"
@@ -130,8 +130,8 @@ function onForgetMcmClick (device) {
     </div>
   </div>
   <div
-    class="row"
     v-if="master.isSelected() && hasWebUsb"
+    class="row"
   >
     <div class="container">
       <br>

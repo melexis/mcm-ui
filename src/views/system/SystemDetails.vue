@@ -76,23 +76,23 @@ function usecToTime (usec) {
       <br>
       <h1>System Details</h1>
       <p
-        class="list-unstyled"
         v-if="!systemVersionsReceived || !systemNetworkReceived || !master.isConnected()"
+        class="list-unstyled"
       >
         <StatusMessage
+          v-if="statusMsgIsError"
           :is-error="statusMsgIsError"
           :message="statusMsg"
-          v-if="statusMsgIsError"
         />
         <StatusSpinner
+          v-if="!statusMsgIsError"
           title="Waiting for data"
           status-text="Reading information"
-          v-if="!statusMsgIsError"
         />
       </p>
       <ul
-        class="list-unstyled"
         v-if="systemVersionsReceived && systemNetworkReceived && master.isConnected()"
+        class="list-unstyled"
       >
         <li><b>Version Information</b></li>
         <ul>

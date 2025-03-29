@@ -75,8 +75,8 @@ function computedBusy () {
       <div class="form-group">
         <button
           class="btn btn-primary"
-          @click="upgradeClicked"
           :disabled="computedBusy()"
+          @click="upgradeClicked"
         >
           Upgrade
         </button>
