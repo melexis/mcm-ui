@@ -47,7 +47,7 @@ onMounted(() => {
       ssid.value = name;
       systemNetworkReceived.value = true;
       /* wifiMacAddress.value = config.mac; */
-      Promise.resolve();
+      return Promise.resolve();
     })
     .catch((error) => {
       console.log(error);
