@@ -17,6 +17,7 @@ const upTime = ref('');
 const ssid = ref('');
 const hostname = ref('');
 const wifiMacAddress = ref('');
+const wifiLinkUp = ref(false);
 const wifiIp4Address = ref('');
 const wifiIp4Netmask = ref('');
 const wifiIp4Gateway = ref('');
@@ -45,8 +46,24 @@ onMounted(() => {
     })
     .then((name) => {
       ssid.value = name;
+      return mcm.getMac();
+    })
+    .then((mac) => {
+      wifiMacAddress.value = mac;
+      return mcm.getIpInfo();
+    })
+    .then((ipInfo) => {
+      wifiLinkUp.value = ipInfo.link_up;
+      if (wifiLinkUp.value === true) {
+        wifiIp4Address.value = ipToString(ipInfo.ip);
+        wifiIp4Netmask.value = ipToString(ipInfo.netmask);
+        wifiIp4Gateway.value = ipToString(ipInfo.gateway);
+      } else {
+        wifiIp4Address.value = '';
+        wifiIp4Netmask.value = '';
+        wifiIp4Gateway.value = '';
+      }
       systemNetworkReceived.value = true;
-      /* wifiMacAddress.value = config.mac; */
       return Promise.resolve();
     })
     .catch((error) => {
@@ -67,6 +84,10 @@ function usecToTime (usec) {
   const hours = usec % 24;
   const days = Math.floor((usec - hours) / 24);
   return `${days} days, ${('00' + hours).slice(-2)}:${('00' + minutes).slice(-2)}:${('00' + seconds).slice(-2)}.${('000' + milliSec).slice(-3)}`;
+}
+
+function ipToString (value) {
+  return `${(value >> 0) & 0xFF}.${(value >> 8) & 0xFF}.${(value >> 16) & 0xFF}.${(value >> 24) & 0xFF}`;
 }
 </script>
 
@@ -110,9 +131,18 @@ function usecToTime (usec) {
           <ul>
             <li>SSID: {{ ssid }}</li>
             <li>MAC address: {{ wifiMacAddress }}</li>
-            <li>IPv4 address: {{ wifiIp4Address }}</li>
-            <li>IPv4 netmask: {{ wifiIp4Netmask }}</li>
-            <li>IPv4 gateway: {{ wifiIp4Gateway }}</li>
+            <li v-if="wifiLinkUp">
+              IPv4 address: {{ wifiIp4Address }}
+            </li>
+            <li v-if="wifiLinkUp">
+              IPv4 netmask: {{ wifiIp4Netmask }}
+            </li>
+            <li v-if="wifiLinkUp">
+              IPv4 gateway: {{ wifiIp4Gateway }}
+            </li>
+            <li v-if="!wifiLinkUp">
+              WiFi is not connected
+            </li>
           </ul>
         </ul>
       </ul>
