@@ -7,6 +7,8 @@ const MCM_VENDOR_REQUEST_BOOTLOADER_DO = 0x31;
 const MCM_CONFIG_HOSTNAME = 0x00;
 const MCM_CONFIG_WIFI_SSID = 0x01;
 const MCM_CONFIG_WIFI_PASS = 0x02;
+const MCM_CONFIG_WIFI_MAC = 0x03;
+const MCM_CONFIG_WIFI_IP_INFO = 0x04;
 
 export const MCM_UART_RAW_DATA_BITS = [
   5,
@@ -247,6 +249,34 @@ export class McmUart {
     return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_PASS, 255)
       .then((response) => {
         return Promise.resolve(new TextDecoder().decode(response));
+      });
+  }
+
+  getMac () {
+    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_MAC, 255)
+      .then((response) => {
+        let retval = '';
+        for (let i = 0; i < 6; i++) {
+          retval += `${response[i].toString(16)}:`;
+        }
+        return Promise.resolve(retval.slice(0, -1));
+      });
+  }
+
+  getIpInfo () {
+    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_IP_INFO, 255)
+      .then((response) => {
+        const info = {};
+        if (response.length >= 0) {
+          info.link_up = true;
+          const u32Resp = new Uint32Array(response.buffer);
+          info.ip = u32Resp[0];
+          info.netmask = u32Resp[1];
+          info.gateway = u32Resp[2];
+        } else {
+          info.link_up = false;
+        }
+        return Promise.resolve(info);
       });
   }
 }
