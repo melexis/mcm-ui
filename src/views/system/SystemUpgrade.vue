@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { gt } from 'semver';
 
 import ProgressBar from '../../components/ProgressBar.vue';
 import StatusMessage from '../../components/StatusMessage.vue';
@@ -13,13 +14,17 @@ const statusMsg = ref('');
 const statusMsgIsError = ref(false);
 const progbarProgress = ref(0);
 const progbarIsAnimated = ref(false);
+const firmwareRevRead = ref(false);
 const firmwareVersion = ref('');
+const upgradeAvailable = ref(false);
 const newFirmware = 'v0.14.0';
 
 onMounted(() => {
   master.getVersion()
     .then((version) => {
       firmwareVersion.value = version;
+      upgradeAvailable.value = gt(newFirmware, firmwareVersion.value);
+      firmwareRevRead.value = true;
     });
 });
 
@@ -71,28 +76,38 @@ function computedBusy () {
     <div class="container">
       <br>
       <h1>System Upgrade</h1>
-      <p>Press 'Upgrade' to upgrade the firmware from {{ firmwareVersion }} to {{ newFirmware }}.</p>
-      <div class="form-group">
-        <button
-          class="btn btn-primary"
-          :disabled="computedBusy()"
-          @click="upgradeClicked"
-        >
-          Upgrade
-        </button>
+      <div v-if="!firmwareRevRead">
+        <p>Checking for firmware updates...</p>
       </div>
-      <br>
-      <div class="container">
-        <ProgressBar
-          maximum="100"
-          :value="progbarProgress"
-          precision="0"
-          :is-animated="progbarIsAnimated"
-        />
-        <StatusMessage
-          :is-error="statusMsgIsError"
-          :message="statusMsg"
-        />
+      <div v-if="firmwareRevRead">
+        <div v-if="upgradeAvailable">
+          <p>Press 'Upgrade' to upgrade the firmware from {{ firmwareVersion }} to {{ newFirmware }}.</p>
+          <div class="form-group">
+            <button
+              class="btn btn-primary"
+              :disabled="computedBusy()"
+              @click="upgradeClicked"
+            >
+              Upgrade
+            </button>
+          </div>
+          <br>
+          <div class="container">
+            <ProgressBar
+              maximum="100"
+              :value="progbarProgress"
+              precision="0"
+              :is-animated="progbarIsAnimated"
+            />
+            <StatusMessage
+              :is-error="statusMsgIsError"
+              :message="statusMsg"
+            />
+          </div>
+        </div>
+        <div v-if="!upgradeAvailable">
+          <p>Your MCM is running the most recent firmware.</p>
+        </div>
       </div>
     </div>
   </div>
