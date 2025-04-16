@@ -70,6 +70,13 @@ function onForgetMcmClick (device) {
     .then(() => {
     });
 }
+
+function computedHasUsbDevices () {
+  if (typeof (usbDevices.value) === 'undefined') {
+    return false;
+  }
+  return usbDevices.value.length !== 0;
+}
 </script>
 
 <template>
@@ -89,11 +96,21 @@ function onForgetMcmClick (device) {
     <div class="container">
       <br>
       <div class="row">
-        <p>Click on a tile below to open the UI.</p>
+        <p>Click on a board below to open the UI.</p>
         <div
           id="boxContainer"
           class="master-container"
         >
+          <div
+            class="box"
+            v-if="!computedHasUsbDevices()"
+          >
+            <p>No USB devices found</p>
+            <img
+              src="/static/MCM-81339-not-connected.png"
+              class="img-fluid"
+            >
+          </div>
           <div
             v-for="(device, index) in usbDevices"
             :key="index"
@@ -112,13 +129,15 @@ function onForgetMcmClick (device) {
               class="img-fluid"
             >
           </div>
+          <div
+            class="box-not-found"
+            @click="requestDevice()"
+          >
+            <p>
+              Do not see your USB device? Grant this site permission to access it here.
+            </p>
+          </div>
         </div>
-        <p>
-          Do not see your USB device? Grant this site permission to access it <a
-            href="#"
-            @click.prevent="requestDevice()"
-          >here</a>.
-        </p>
       </div>
     </div>
   </div>
@@ -153,10 +172,13 @@ function onForgetMcmClick (device) {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 5px;
     background-color: #e9ecef;
-    align-items: start;
+    align-content: start;
+    min-width: 220px;
     height: 70vh;
+    overflow-y: auto;
   }
-  .box {
+  .box,
+  .box-not-found {
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
@@ -166,6 +188,30 @@ function onForgetMcmClick (device) {
     cursor: pointer;
     box-sizing: border-box;
     background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    min-height: 300px;
+    overflow: hidden;
+  }
+  .box p {
+    margin-bottom: 10px;
+  }
+  .box-not-found {
+    background-color: #cdcfd1;
+    border-style: dashed;
+    border-color: #939696;
+  }
+  .box-not-found p {
+    color: #747678;
+  }
+  .img-fluid {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    flex-grow: 1;
   }
   .no-more-boxes {
     grid-column: 1 / -1; /* Span across all columns */
