@@ -89,36 +89,53 @@ function onForgetMcmClick (device) {
     <div class="container">
       <br>
       <div class="row">
-        <p>Click on a tile below to open the UI.</p>
+        <p>Click on a board below to open the UI.</p>
         <div
           id="boxContainer"
           class="master-container"
         >
+          <div v-if="usbDevices.length === 0">
+            <div class="box">
+              <div class="div-center">
+                <p>No USB devices found</p>
+                <img
+                  src="/static/MCM-81339-not-connected.png"
+                  class="img-fluid"
+                >
+              </div>
+            </div>
+          </div>
+          <div v-if="usbDevices.length !== 0">
+            <div
+              v-for="(device, index) in usbDevices"
+              :key="index"
+              class="box"
+              @click="onMcmClick(device)"
+            >
+              <div class="div-center">
+                <p
+                  v-if="hasForget"
+                  @click="onForgetMcmClick(device)"
+                >
+                  forget
+                </p>
+                <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
+                <img
+                  src="/static/MCM-81339.png"
+                  class="img-fluid"
+                >
+              </div>
+            </div>
+          </div>
           <div
-            v-for="(device, index) in usbDevices"
-            :key="index"
-            class="box"
-            @click="onMcmClick(device)"
+            class="box-not-found"
+            @click="requestDevice()"
           >
-            <p
-              v-if="hasForget"
-              @click="onForgetMcmClick(device)"
-            >
-              forget
+            <p>
+              Do not see your USB device? Grant this site permission to access it here.
             </p>
-            <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
-            <img
-              src="/static/MCM-81339.png"
-              class="img-fluid"
-            >
           </div>
         </div>
-        <p>
-          Do not see your USB device? Grant this site permission to access it <a
-            href="#"
-            @click.prevent="requestDevice()"
-          >here</a>.
-        </p>
       </div>
     </div>
   </div>
@@ -166,6 +183,42 @@ function onForgetMcmClick (device) {
     cursor: pointer;
     box-sizing: border-box;
     background-color: white;
+    height: 25vh;
+    overflow: hidden;
+  }
+  .box-not-found {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+    border-color: #ced4da;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color: #cdcfd1;
+    height: 25vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .box-not-found p {
+    color: #747678;
+  }
+  .div-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+  .div-center p {
+    margin-bottom: 10px;
+  }
+  .img-fluid {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    flex-grow: 1;
   }
   .no-more-boxes {
     grid-column: 1 / -1; /* Span across all columns */
