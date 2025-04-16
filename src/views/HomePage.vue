@@ -70,6 +70,13 @@ function onForgetMcmClick (device) {
     .then(() => {
     });
 }
+
+function computedHasUsbDevices () {
+  if (typeof (usbDevices.value) === 'undefined') {
+    return false;
+  }
+  return usbDevices.value.length !== 0;
+}
 </script>
 
 <template>
@@ -94,38 +101,33 @@ function onForgetMcmClick (device) {
           id="boxContainer"
           class="master-container"
         >
-          <div v-if="usbDevices.length === 0">
-            <div class="box">
-              <div class="div-center">
-                <p>No USB devices found</p>
-                <img
-                  src="/static/MCM-81339-not-connected.png"
-                  class="img-fluid"
-                >
-              </div>
-            </div>
-          </div>
-          <div v-if="usbDevices.length !== 0">
-            <div
-              v-for="(device, index) in usbDevices"
-              :key="index"
-              class="box"
-              @click="onMcmClick(device)"
+          <div
+            class="box"
+            v-if="!computedHasUsbDevices()"
+          >
+            <p>No USB devices found</p>
+            <img
+              src="/static/MCM-81339-not-connected.png"
+              class="img-fluid"
             >
-              <div class="div-center">
-                <p
-                  v-if="hasForget"
-                  @click="onForgetMcmClick(device)"
-                >
-                  forget
-                </p>
-                <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
-                <img
-                  src="/static/MCM-81339.png"
-                  class="img-fluid"
-                >
-              </div>
-            </div>
+          </div>
+          <div
+            v-for="(device, index) in usbDevices"
+            :key="index"
+            class="box"
+            @click="onMcmClick(device)"
+          >
+            <p
+              v-if="hasForget"
+              @click="onForgetMcmClick(device)"
+            >
+              forget
+            </p>
+            <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
+            <img
+              src="/static/MCM-81339.png"
+              class="img-fluid"
+            >
           </div>
           <div
             class="box-not-found"
@@ -170,22 +172,12 @@ function onForgetMcmClick (device) {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 5px;
     background-color: #e9ecef;
-    align-items: start;
+    align-content: start;
+    min-width: 220px;
     height: 70vh;
+    overflow-y: auto;
   }
-  .box {
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 3px;
-    border-color: #ced4da;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    box-sizing: border-box;
-    background-color: white;
-    height: 25vh;
-    overflow: hidden;
-  }
+  .box,
   .box-not-found {
     border-width: 1px;
     border-style: solid;
@@ -195,24 +187,25 @@ function onForgetMcmClick (device) {
     text-align: center;
     cursor: pointer;
     box-sizing: border-box;
-    background-color: #cdcfd1;
-    height: 25vh;
+    background-color: white;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    min-height: 300px;
+    overflow: hidden;
+  }
+  .box p {
+    margin-bottom: 10px;
+  }
+  .box-not-found {
+    background-color: #cdcfd1;
+    border-style: dashed;
+    border-color: #939696;
   }
   .box-not-found p {
     color: #747678;
-  }
-  .div-center {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-  }
-  .div-center p {
-    margin-bottom: 10px;
   }
   .img-fluid {
     max-width: 100%;
