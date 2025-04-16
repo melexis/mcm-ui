@@ -40,11 +40,6 @@ function requestDevice () {
   const filters = [
     {
       vendorId: 0x03E9,
-      productId: 0x4666,
-      classCode: 0xFF, // vendor-specific
-    },
-    {
-      vendorId: 0x03E9,
       productId: 0x6F08,
       classCode: 0xFF, // vendor-specific
     },
@@ -52,9 +47,7 @@ function requestDevice () {
   navigator.usb.requestDevice({ filters })
     .then((device) => {
       const index = usbDevices.value.indexOf(device);
-      if (index >= 0) {
-        /* device was already known */
-      } else {
+      if (index < 0) {
         /* fresh new device */
         usbDevices.value.push(device);
       }
