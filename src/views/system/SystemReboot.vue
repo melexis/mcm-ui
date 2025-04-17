@@ -22,7 +22,7 @@ const timer = setInterval(function () {
   }
 }, 250);
 onMounted(function () {
-  master.reboot();
+  master.restart();
 });
 </script>
 

@@ -54,7 +54,7 @@ function upgradeClicked () {
       progbarProgress.value = 100;
       progbarIsAnimated.value = false;
       working.value = false;
-      return Promise.resolve();
+      return master.disconnect();
     })
     .catch((error) => {
       console.log(error);
