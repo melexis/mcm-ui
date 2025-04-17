@@ -267,7 +267,7 @@ export class McmUart {
     return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_IP_INFO, 255)
       .then((response) => {
         const info = {};
-        if (response.length >= 0) {
+        if (response.length > 0) {
           info.link_up = true;
           const u32Resp = new Uint32Array(response.buffer);
           info.ip = u32Resp[0];
