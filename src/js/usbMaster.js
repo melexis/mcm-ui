@@ -311,7 +311,10 @@ export class Master {
   }
 
   restart () {
-    return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_RESTART, 0);
+    return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_RESTART, 0)
+      .then(() => {
+        return this.disconnect();
+      });
   }
 
   upgradeFirmware (fileContent, progressCallback = null) {
