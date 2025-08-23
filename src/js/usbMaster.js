@@ -47,7 +47,7 @@ function doTransferOut (device, endpointNumber, data) {
         return Promise.resolve();
       } else if (result.status === 'stall') {
         /* device indicated an error */
-        return this.state.device.clearHalt('out', endpointNumber)
+        return device.clearHalt('out', endpointNumber)
           .then(() => { return Promise.reject(new Error('Device indicated an error occurred')); });
       }
       return Promise.reject(new Error('Transfer out gave unexpected response'));
@@ -99,6 +99,12 @@ export class Master {
       mode: null,
       bulkRxCallback: null
     });
+
+    navigator.usb.addEventListener('disconnect', (event) => {
+      if (this.state.device && this.state.device === event.device) {
+        this.state.device = null;
+      }
+    });
   }
 
   setDevice (device) {
@@ -135,21 +141,12 @@ export class Master {
         return this.state.device.open()
           .then(() => {
             if (this.state.device.configuration === null) {
-              return Promise.resolve(this.state.device.selectConfiguration(1));
+              return this.state.device.selectConfiguration(1);
             }
-            return Promise.resolve();
           })
           .then(() => { return this.detectVendorEndpoints(); })
           .then(() => { return this.state.device.claimInterface(this.state.vendorInterfaceNumber); })
-          .then(() => {
-            navigator.usb.addEventListener('disconnect', (event) => {
-              if (this.state.device && this.state.device === event.device) {
-                this.state.device = null;
-              }
-            });
-            bulkReceiver(this);
-            return Promise.resolve();
-          });
+          .then(() => { bulkReceiver(this); });
       } else {
         return Promise.resolve();
       }
@@ -166,7 +163,6 @@ export class Master {
           this.state.device = null;
           this.state.vendorInEndpoint = null;
           this.state.vendorOutEndpoint = null;
-          return Promise.resolve();
         });
     } else {
       return Promise.resolve();
@@ -186,7 +182,7 @@ export class Master {
             this.state.vendorOutEndpoint = endpoint.endpointNumber;
           }
         }
-        if (this.inEndpoint !== null && this.outEndpoint !== null) {
+        if (this.state.vendorInEndpoint !== null && this.state.vendorOutEndpoint !== null) {
           return Promise.resolve();
         } else {
           return Promise.reject(new Error('Could not detect vendor IN and OUT endpoints'));
@@ -202,7 +198,7 @@ export class Master {
       .then((result) => {
         if (result.status === 'ok') {
           /* transfer went all fine */
-          return Promise.resolve(new Uint8Array(result.data.buffer));
+          return new Uint8Array(result.data.buffer);
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('in', this.state.vendorInEndpoint)
@@ -238,7 +234,7 @@ export class Master {
       .then((result) => {
         if (result.status === 'ok') {
           /* transfer went all fine */
-          return Promise.resolve(new Uint8Array(result.data.buffer));
+          return new Uint8Array(result.data.buffer);
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('in', this.state.vendorInEndpoint)
@@ -270,7 +266,7 @@ export class Master {
           if (result.bytesWritten !== payload.length) {
             return Promise.reject(new Error('not all data could be sent'));
           }
-          return Promise.resolve();
+          return;
         } else if (result.status === 'stall') {
           /* device indicated an error */
           return this.state.device.clearHalt('out', this.state.vendorOutEndpoint)
@@ -288,14 +284,14 @@ export class Master {
     return this.vendorControlTransferIn(MCM_VENDOR_REQUEST_INFO, MCM_INFO_VERSION, 255)
       .then((result) => {
         const decoder = new TextDecoder();
-        return Promise.resolve(decoder.decode(result));
+        return decoder.decode(result);
       });
   }
 
   getResetReason () {
     return this.vendorControlTransferIn(MCM_VENDOR_REQUEST_INFO, MCM_INFO_RESET_REASON, 255)
       .then((result) => {
-        return Promise.resolve(esp32ResetReasons[result[0]]);
+        return esp32ResetReasons[result[0]];
       });
   }
 
@@ -306,7 +302,7 @@ export class Master {
         for (let i = result.length; i > 0; i--) {
           value = (value << 8) | result[i - 1];
         }
-        return Promise.resolve(value);
+        return value;
       });
   }
 
@@ -335,7 +331,7 @@ export class Master {
             if (data.byteLength > 0) {
               return otaTransfer(master, data.slice(chunkSize));
             } else {
-              return Promise.resolve();
+              return;
             }
           } else if (line.startsWith('FAIL')) {
             return Promise.reject(new Error('MCM reported a failure'));
@@ -351,7 +347,7 @@ export class Master {
             /* mcm keeps sending EMPTY while waiting for transfer done so drop those */
             return waitBulkRxLine();
           } else if (line.includes('VALID')) {
-            return Promise.resolve();
+            return;
           } else if (line.startsWith('FAIL')) {
             return Promise.reject(new Error('MCM reported a failure'));
           }
@@ -389,7 +385,6 @@ export class Master {
         this.bulkRxCallback = null;
         this.mode = null;
         rxUpdateBuffer = '';
-        return Promise.resolve();
       })
       .catch((error) => {
         this.bulkRxCallback = null;

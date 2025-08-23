@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue';
 
 import { useMaster } from '../../js/usbMaster';
 import { McmUart, MCM_UART_RAW_DATA_BITS, MCM_UART_RAW_STOP_BITS, MCM_UART_RAW_PARITY } from '../../js/usbMcmUart';
@@ -15,11 +15,21 @@ const dataBits = ref(8);
 const stopBits = ref(1);
 const parity = ref('disabled');
 const fullDuplex = ref(true);
+const logContainer = ref(null);
+const shouldAutoScroll = ref(true);
 
 const showModal = ref(false);
 
 const master = useMaster();
 const mcm = new McmUart(master);
+
+const onScroll = () => {
+  const el = logContainer.value;
+  if (el) {
+    const isNearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
+    shouldAutoScroll.value = isNearBottom;
+  }
+};
 
 onMounted(() => {
   mcm.enableBareUartMode(
@@ -28,12 +38,33 @@ onMounted(() => {
     dataBits.value,
     stopBits.value,
     parity.value,
-    fullDuplex.value ? 0 : 1);
+    !fullDuplex.value ? 1 : 0);
+
+  const el = logContainer.value;
+  if (el) {
+    el.addEventListener('scroll', onScroll);
+  }
 });
 
 onBeforeUnmount(() => {
   mcm.disableBareUartMode();
+
+  const el = logContainer.value;
+  if (el) {
+    el.removeEventListener('scroll', onScroll);
+  }
 });
+
+watch(
+  () => logContent.value.length,
+  async () => {
+    await nextTick();
+    const el = logContainer.value;
+    if (el && shouldAutoScroll.value) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+);
 
 function sendMessage () {
   mcm.writeToBareUart(txMessage.value);
@@ -48,6 +79,7 @@ function receivedMessage (message) {
   const type = 'rx';
   const decodedMessage = new TextDecoder().decode(message);
   logContent.value.push({ time, type, decodedMessage });
+  return message.length;
 }
 
 function clearLogContent () {
@@ -75,8 +107,16 @@ function configDone () {
         dataBits.value,
         stopBits.value,
         parity.value,
-        fullDuplex.value ? 0 : 1);
+        !fullDuplex.value ? 1 : 0);
     });
+}
+
+function scrollToBottom () {
+  const el = logContainer.value;
+  if (el) {
+    el.scrollTop = el.scrollHeight;
+    shouldAutoScroll.value = true;
+  }
 }
 </script>
 
@@ -90,12 +130,29 @@ function configDone () {
           <a
             href="#"
             @click="showModal=true"
-          >configure</a><span style="float:right;"><a
-            href="#"
-            @click="clearLogContent()"
-          >clear</a></span>
+          >
+            configure
+          </a>
+          <span style="float:right;">
+            <a
+              href="#"
+              @click="clearLogContent()"
+            >
+              clear
+            </a>
+            |
+            <a
+              href="#"
+              @click.prevent="scrollToBottom"
+            >
+              scroll to bottom
+            </a>
+          </span>
         </p>
-        <div class="text-receive-box">
+        <div
+          class="text-receive-box"
+          ref="logContainer"
+        >
           <div
             v-for="message in logContent"
             :key="message.time"
@@ -114,6 +171,7 @@ function configDone () {
               v-model="txMessage"
               class="form-control"
               type="text"
+              @keyup.enter="sendMessage"
             >
             <div class="input-group-append">
               <button
@@ -248,7 +306,7 @@ function configDone () {
           <label for="selectparity">Parity</label>
           <select
             id="selectparity"
-            v-model.number="parity"
+            v-model="parity"
             class="form-select"
           >
             <template
@@ -286,6 +344,8 @@ function configDone () {
     height: 30em;
     padding: 10px;
     overflow: auto;
+    overflow-anchor: none;
+    scroll-behavior: smooth;
   }
   .message-tx {
     color: darkgrey;

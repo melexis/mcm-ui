@@ -10,6 +10,19 @@ const MCM_CONFIG_WIFI_PASS = 0x02;
 const MCM_CONFIG_WIFI_MAC = 0x03;
 const MCM_CONFIG_WIFI_IP_INFO = 0x04;
 
+const MEMORY_FLASH = 1;
+const MEMORY_NVRAM = 0;
+
+const OPP_PROGRAM = 0;
+const OPP_VERIFY = 1;
+
+const MasterMode = {
+  NONE: null,
+  BARE: 'bare',
+  BOOTLOADER: 'bootloader',
+  HEXTRANSFER: 'hextransfer',
+};
+
 export const MCM_UART_RAW_DATA_BITS = [
   5,
   6,
@@ -56,16 +69,17 @@ function convertStringToBytes (string) {
 }
 
 function bulkRxCallbackBootloader (buffer) {
-  const newData = new TextDecoder().decode(buffer);
-  rxBtlBuffer = rxBtlBuffer.concat(newData);
+  rxBtlBuffer += new TextDecoder().decode(buffer);
 }
 
 function bulkRxCallbackBareUart (data) {
   const aData = Array.from(data);
   rxBareUartBuffer.push(...aData);
   if (typeof (rxBareUartCallback) === 'function') {
-    const length = rxBareUartCallback(rxBareUartBuffer);
-    rxBareUartBuffer = rxBareUartBuffer.slice(length + 1);
+    const consumedLength = rxBareUartCallback(rxBareUartBuffer);
+    if (typeof consumedLength === 'number' && consumedLength >= 0) {
+      rxBareUartBuffer = rxBareUartBuffer.slice(consumedLength);
+    }
   }
 }
 
@@ -84,6 +98,19 @@ function waitBootloadDone () {
     .then(() => {
       return waitBootloadDone();
     });
+}
+
+function decodeUsbString (response) {
+  return new TextDecoder().decode(response).replace(/\0.*$/, '');
+}
+
+function uint32ToIpString (u32) {
+  return [
+    u32 & 0xFF,
+    (u32 >> 8) & 0xFF,
+    (u32 >> 16) & 0xFF,
+    (u32 >> 24) & 0xFF
+  ].join('.');
 }
 
 export class McmUart {
@@ -112,8 +139,7 @@ export class McmUart {
     this.master.bulkRxCallback = null;
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BARE_UART_MODE, 0)
       .then(() => {
-        this.master.mode = null;
-        return Promise.resolve();
+        this.master.mode = MasterMode.NONE;
       });
   }
 
@@ -128,22 +154,21 @@ export class McmUart {
     this.master.bulkRxCallback = null;
     return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BARE_UART_MODE, 1, payload)
       .then(() => {
-        this.master.mode = 'bare';
+        this.master.mode = MasterMode.BARE;
         rxBareUartBuffer = [];
         this.master.bulkRxCallback = bulkRxCallbackBareUart;
-        return Promise.resolve();
       });
   }
 
   writeToBareUart (message) {
-    if (this.master.mode !== 'bare') {
+    if (this.master.mode !== MasterMode.BARE) {
       return Promise.reject(new Error('device needs to be put in bare uart mode first'));
     }
     return this.master.vendorTransferOut(message);
   }
 
   receiveFromBareUart (length) {
-    if (this.master.mode !== 'bare') {
+    if (this.master.mode !== MasterMode.BARE) {
       return Promise.reject(new Error('device needs to be put in bare uart mode first'));
     }
     if (length >= rxBareUartBuffer.length) {
@@ -157,99 +182,106 @@ export class McmUart {
   }
 
   bootload (hexfile, operation, memory, manualPower, bitRate, fullDuplex, txPin, flashKeys) {
-    if (this.master.mode !== null) {
-      this.disableBareUartMode();
+    if (!Array.isArray(flashKeys) || flashKeys.length < 4) {
+      return Promise.reject(new Error('flashKeys must be an array of 4 values'));
     }
-    // enable bootloader transfer hex mode
-    rxBtlBuffer = '';
-    this.master.bulkRxCallback = bulkRxCallbackBootloader;
-    return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO_TRANSFER, 1)
-      .then(() => {
-        this.master.mode = 'hextransfer';
-        return Promise.resolve();
-      })
-      .then(() => {
-        // send hexfile
-        return this.master.vendorTransferOut(hexfile);
-      })
-      .then(() => {
-        // disable bootloader transfer hex mode
-        return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO_TRANSFER, 0);
-      })
-      .then(() => {
-        // wait for processing done
-        return waitBootloadDone();
-      })
-      .then(() => {
-        // do bootloading action
-        const payload = new Uint8Array(28);
-        payload.set(convertToUint8Array(bitRate), 0); // baudrate to be used during bootloader operations
-        payload.set(convertToUint8Array(flashKeys[0]), 4); // flash protection keys for the chip
-        payload.set(convertToUint8Array(flashKeys[1]), 8);
-        payload.set(convertToUint8Array(flashKeys[2]), 12);
-        payload.set(convertToUint8Array(flashKeys[3]), 16);
-        payload[20] = manualPower ? 1 : 0; // 1: manual power cycling
-        payload[21] = fullDuplex ? 1 : 0; // 1: bootloading shall be done in full duplex mode
-        payload[22] = txPin; // chip tx pin to use when in full duplex mode
-        payload[23] = memory.toLowerCase() === 'flash' ? 1 : 0; // memory type to perform action on (0: NVRAM; 1: flash)
-        payload[24] = operation.toLowerCase() === 'program' ? 0 : 1; // action type to perform (0: program; 1: verify)
-        payload[25] = 0; // reserved
-        payload[26] = 0; // reserved
-        payload[27] = 0; // reserved
-        this.master.mode = 'bootloader';
-        rxBtlBuffer = '';
-        return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO, 0, payload);
-      })
-      .then(() => {
-        return waitBootloadDone();
-      })
-      .then(() => {
-        rxBtlBuffer = '';
-        this.master.bulkRxCallback = null;
-        this.master.mode = null;
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        this.master.bulkRxCallback = null;
-        this.master.mode = null;
-        return Promise.reject(error);
+
+    const start = () => {
+      // enable bootloader transfer hex mode
+      rxBtlBuffer = '';
+      this.master.bulkRxCallback = bulkRxCallbackBootloader;
+      return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO_TRANSFER, 1)
+        .then(() => {
+          this.master.mode = MasterMode.HEXTRANSFER;
+        })
+        .then(() => {
+          // send hexfile
+          return this.master.vendorTransferOut(hexfile);
+        })
+        .then(() => {
+          // disable bootloader transfer hex mode
+          return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO_TRANSFER, 0);
+        })
+        .then(() => {
+          // wait for processing done
+          return waitBootloadDone();
+        })
+        .then(() => {
+          // do bootloading action
+          const payload = new Uint8Array(28);
+          payload.set(convertToUint8Array(bitRate), 0); // baudrate to be used during bootloader operations
+          payload.set(convertToUint8Array(flashKeys[0]), 4); // flash protection keys for the chip
+          payload.set(convertToUint8Array(flashKeys[1]), 8);
+          payload.set(convertToUint8Array(flashKeys[2]), 12);
+          payload.set(convertToUint8Array(flashKeys[3]), 16);
+          payload[20] = manualPower ? 1 : 0; // 1: manual power cycling
+          payload[21] = fullDuplex ? 1 : 0; // 1: bootloading shall be done in full duplex mode
+          payload[22] = txPin; // chip tx pin to use when in full duplex mode
+          payload[23] = memory.toLowerCase() === 'flash' ? MEMORY_FLASH : MEMORY_NVRAM; // memory type to perform action on (0: NVRAM; 1: flash)
+          payload[24] = operation.toLowerCase() === 'program' ? OPP_PROGRAM : OPP_VERIFY; // action type to perform (0: program; 1: verify)
+          payload[25] = 0; // reserved
+          payload[26] = 0; // reserved
+          payload[27] = 0; // reserved
+          this.master.mode = MasterMode.BOOTLOADER;
+          rxBtlBuffer = '';
+          return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_BOOTLOADER_DO, 0, payload);
+        })
+        .then(() => {
+          return waitBootloadDone();
+        })
+        .then(() => {
+          rxBtlBuffer = '';
+          this.master.bulkRxCallback = null;
+          this.master.mode = MasterMode.NONE;
+        })
+        .catch((error) => {
+          this.master.bulkRxCallback = null;
+          this.master.mode = MasterMode.NONE;
+          return Promise.reject(error);
+        });
+    };
+
+    if (this.master.mode !== MasterMode.NONE) {
+      return this.disableBareUartMode().then(start);
+    } else {
+      return start();
+    }
+  }
+
+  setConfig (index, string) {
+    const payload = convertStringToBytes(string);
+    return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_CONFIG, index, payload);
+  }
+
+  getConfig (index) {
+    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, index, 255)
+      .then((response) => {
+        return decodeUsbString(response);
       });
   }
 
   setHostname (hostname) {
-    const payload = convertStringToBytes(hostname);
-    return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_HOSTNAME, payload);
+    return this.setConfig(MCM_CONFIG_HOSTNAME, hostname);
   }
 
   getHostname () {
-    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_HOSTNAME, 255)
-      .then((response) => {
-        return Promise.resolve(new TextDecoder().decode(response));
-      });
+    return this.getConfig(MCM_CONFIG_HOSTNAME);
   }
 
   setSsid (ssid) {
-    const payload = convertStringToBytes(ssid);
-    return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_SSID, payload);
+    return this.setConfig(MCM_CONFIG_WIFI_SSID, ssid);
   }
 
   getSsid () {
-    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_SSID, 255)
-      .then((response) => {
-        return Promise.resolve(new TextDecoder().decode(response));
-      });
+    return this.getConfig(MCM_CONFIG_WIFI_SSID);
   }
 
   setPassword (password) {
-    const payload = convertStringToBytes(password);
-    return this.master.vendorControlTransferOut(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_PASS, payload);
+    return this.setConfig(MCM_CONFIG_WIFI_PASS, password);
   }
 
   getPassword () {
-    return this.master.vendorControlTransferIn(MCM_VENDOR_REQUEST_CONFIG, MCM_CONFIG_WIFI_PASS, 255)
-      .then((response) => {
-        return Promise.resolve(new TextDecoder().decode(response));
-      });
+    return this.getConfig(MCM_CONFIG_WIFI_PASS);
   }
 
   getMac () {
@@ -257,9 +289,9 @@ export class McmUart {
       .then((response) => {
         let retval = '';
         for (let i = 0; i < 6; i++) {
-          retval += `${response[i].toString(16)}:`;
+          retval += `${response[i].toString(16).padStart(2, '0')}:`;
         }
-        return Promise.resolve(retval.slice(0, -1));
+        return retval.slice(0, -1);
       });
   }
 
@@ -270,13 +302,13 @@ export class McmUart {
         if (response.length > 0) {
           info.link_up = true;
           const u32Resp = new Uint32Array(response.buffer);
-          info.ip = u32Resp[0];
-          info.netmask = u32Resp[1];
-          info.gateway = u32Resp[2];
+          info.ip = uint32ToIpString(u32Resp[0]);
+          info.netmask = uint32ToIpString(u32Resp[1]);
+          info.gateway = uint32ToIpString(u32Resp[2]);
         } else {
           info.link_up = false;
         }
-        return Promise.resolve(info);
+        return info;
       });
   }
 }

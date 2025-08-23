@@ -55,9 +55,9 @@ onMounted(() => {
     .then((ipInfo) => {
       wifiLinkUp.value = ipInfo.link_up;
       if (wifiLinkUp.value === true) {
-        wifiIp4Address.value = ipToString(ipInfo.ip);
-        wifiIp4Netmask.value = ipToString(ipInfo.netmask);
-        wifiIp4Gateway.value = ipToString(ipInfo.gateway);
+        wifiIp4Address.value = ipInfo.ip;
+        wifiIp4Netmask.value = ipInfo.netmask;
+        wifiIp4Gateway.value = ipInfo.gateway;
       } else {
         wifiIp4Address.value = '';
         wifiIp4Netmask.value = '';
@@ -84,10 +84,6 @@ function usecToTime (usec) {
   const hours = usec % 24;
   const days = Math.floor((usec - hours) / 24);
   return `${days} days, ${('00' + hours).slice(-2)}:${('00' + minutes).slice(-2)}:${('00' + seconds).slice(-2)}.${('000' + milliSec).slice(-3)}`;
-}
-
-function ipToString (value) {
-  return `${(value >> 0) & 0xFF}.${(value >> 8) & 0xFF}.${(value >> 16) & 0xFF}.${(value >> 24) & 0xFF}`;
 }
 </script>
 
