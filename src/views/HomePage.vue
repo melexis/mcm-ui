@@ -37,7 +37,7 @@ onMounted(() => {
 });
 
 function usbDevicesIsKnown (device) {
-  if (! computedHasUsbDevices()) {
+  if (!computedHasUsbDevices()) {
     return false;
   }
   return usbDevices.value.indexOf(device) >= 0;
@@ -53,7 +53,7 @@ function requestDevice () {
   ];
   navigator.usb.requestDevice({ filters })
     .then((device) => {
-      if (! usbDevicesIsKnown(device)) {
+      if (!usbDevicesIsKnown(device)) {
         /* fresh new device */
         usbDevices.value.push(device);
       }
@@ -110,6 +110,7 @@ function computedHasUsbDevices () {
           <div
             class="box"
             v-if="!computedHasUsbDevices()"
+            @click="requestDevice()"
           >
             <p>No USB devices found</p>
             <img
@@ -148,7 +149,7 @@ function computedHasUsbDevices () {
     </div>
   </div>
   <div
-    v-if="master.isSelected() && hasWebUsb"
+    v-if="master.isSelected() && master.isConnected() && hasWebUsb"
     class="row"
   >
     <div class="container">

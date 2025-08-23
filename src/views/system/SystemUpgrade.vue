@@ -24,9 +24,9 @@ onMounted(() => {
     .then((version) => {
       firmwareVersion.value = version;
       try {
-          upgradeAvailable.value = gt(newFirmware, firmwareVersion.value);
+        upgradeAvailable.value = gt(newFirmware, firmwareVersion.value);
       } catch (error) {
-          upgradeAvailable.value = true;
+        upgradeAvailable.value = true;
       }
       firmwareRevRead.value = true;
     });
