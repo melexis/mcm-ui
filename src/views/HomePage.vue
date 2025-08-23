@@ -110,6 +110,7 @@ function computedHasUsbDevices () {
           <div
             class="box"
             v-if="!computedHasUsbDevices()"
+            @click="requestDevice()"
           >
             <p>No USB devices found</p>
             <img
@@ -148,7 +149,7 @@ function computedHasUsbDevices () {
     </div>
   </div>
   <div
-    v-if="master.isSelected() && hasWebUsb"
+    v-if="master.isSelected() && master.isConnected() && hasWebUsb"
     class="row"
   >
     <div class="container">
