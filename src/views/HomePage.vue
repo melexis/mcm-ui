@@ -72,9 +72,13 @@ function onMcmClick (device) {
 }
 
 function onForgetMcmClick (device) {
-  device.forget()
-    .then(() => {
-    });
+  if (confirm('Are you sure you want to forget this device?')) {
+    device.forget()
+      .then(() => {
+        const usbDisconIndex = usbDevices.value.indexOf(device);
+        usbDevices.value.splice(usbDisconIndex, 1);
+      });
+  }
 }
 
 function computedHasUsbDevices () {
@@ -123,13 +127,16 @@ function computedHasUsbDevices () {
             :key="index"
             class="box"
             @click="onMcmClick(device)"
+            title="Connect to this device"
           >
-            <p
+            <span
               v-if="hasForget"
-              @click="onForgetMcmClick(device)"
+              @click.stop="onForgetMcmClick(device)"
+              class="forget-link"
+              title="Forget this device"
             >
-              forget
-            </p>
+              <font-awesome-icon icon="fa-solid fa-trash-can" /> forget
+            </span>
             <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
             <img
               src="/static/MCM-81339.png"
@@ -139,6 +146,7 @@ function computedHasUsbDevices () {
           <div
             class="box-not-found"
             @click="requestDevice()"
+            title="Grant access to other devices"
           >
             <p>
               Do not see your USB device? Grant this site permission to access it here.
@@ -149,7 +157,7 @@ function computedHasUsbDevices () {
     </div>
   </div>
   <div
-    v-if="master.isSelected() && master.isConnected() && hasWebUsb"
+    v-if="master.isSelected() && hasWebUsb"
     class="row"
   >
     <div class="container">
@@ -227,5 +235,19 @@ function computedHasUsbDevices () {
   img {
     height:60%;
     object-fit:cover;
+  }
+  .forget-link {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 0.85em;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-bottom: 5px;
+  }
+  .forget-link:hover {
+    color: #a71d2a;
+    text-decoration: none;
   }
 </style>
