@@ -37,7 +37,7 @@ onMounted(() => {
 });
 
 function usbDevicesIsKnown (device) {
-  if (! computedHasUsbDevices()) {
+  if (!computedHasUsbDevices()) {
     return false;
   }
   return usbDevices.value.indexOf(device) >= 0;
@@ -53,7 +53,7 @@ function requestDevice () {
   ];
   navigator.usb.requestDevice({ filters })
     .then((device) => {
-      if (! usbDevicesIsKnown(device)) {
+      if (!usbDevicesIsKnown(device)) {
         /* fresh new device */
         usbDevices.value.push(device);
       }
