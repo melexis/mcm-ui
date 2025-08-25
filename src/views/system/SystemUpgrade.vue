@@ -17,7 +17,7 @@ const progbarIsAnimated = ref(false);
 const firmwareRevRead = ref(false);
 const firmwareVersion = ref('');
 const upgradeAvailable = ref(false);
-const newFirmware = 'v0.17.0';
+const newFirmware = 'v0.18.0';
 
 onMounted(() => {
   master.getVersion()
