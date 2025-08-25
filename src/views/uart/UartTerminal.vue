@@ -67,7 +67,7 @@ watch(
 );
 
 function sendMessage () {
-  mcm.writeToBareUart(txMessage.value);
+  mcm.writeToBareUart(new TextEncoder().encode(txMessage.value));
   const time = new Date();
   const type = 'tx';
   const message = `${txMessage.value}`;
