@@ -133,7 +133,7 @@ function computedNvramEnabled () {
   <div class="container">
     <br>
     <div class="row">
-      <h1>UART Bootloader</h1>
+      <h1>UART Programmer</h1>
     </div>
     <div class="row">
       <div class="col-md-5">
