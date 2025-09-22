@@ -59,7 +59,7 @@ function disconnect () {
                   class="dropdown-item"
                   :to="{ name: 'uart-bootloader' }"
                 >
-                  bootloader
+                  programmer
                 </router-link>
               </li>
               <li>
