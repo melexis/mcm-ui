@@ -50,6 +50,11 @@ function requestDevice () {
       productId: 0x6F08,
       classCode: 0xFF, // vendor-specific
     },
+    {
+      vendorId: 0x03E9,
+      productId: 0x6F09,
+      classCode: 0xFF, // vendor-specific
+    },
   ];
   navigator.usb.requestDevice({ filters })
     .then((device) => {
@@ -86,6 +91,24 @@ function computedHasUsbDevices () {
     return false;
   }
   return usbDevices.value.length !== 0;
+}
+
+function computedMasterIsMcm81339 () {
+  return master.getProductName() === 'Melexis Compact Master 81339';
+}
+
+function computedMasterIsMcmLin () {
+  return master.getProductName() === 'Melexis Compact Master LIN';
+}
+
+function computedProductImage (productName) {
+  if (productName === 'Melexis Compact Master 81339') {
+    return '/static/MCM-81339.png';
+  }
+  if (productName === 'Melexis Compact Master LIN') {
+    return '/static/MCM-LIN.png';
+  }
+  return '/static/logo.png';
 }
 </script>
 
@@ -139,7 +162,7 @@ function computedHasUsbDevices () {
             </span>
             <p>{{ device.productName }}<br>(S/N: {{ device.serialNumber }})</p>
             <img
-              src="/static/MCM-81339.png"
+              :src="computedProductImage(device.productName)"
               class="img-fluid"
             >
           </div>
@@ -163,13 +186,28 @@ function computedHasUsbDevices () {
     <div class="container">
       <br>
       <h1>Home</h1>
-      <div class="row">
+      <div
+        v-if="computedMasterIsMcm81339()"
+        class="row"
+      >
         <div class="col-md-8">
           <p>Melexis Compact Master (MCM) for controlling UART protocol busses.&nbsp;&nbsp;</p>
           <p>The device is for development only.</p>
         </div>
         <div class="col-md-4">
           <img src="/static/MCM-81339.png">
+        </div>
+      </div>
+      <div
+        v-if="computedMasterIsMcmLin()"
+        class="row"
+      >
+        <div class="col-md-8">
+          <p>Melexis Compact Master (MCM) for controlling LIN busses.&nbsp;&nbsp;</p>
+          <p>The device is for development only.</p>
+        </div>
+        <div class="col-md-4">
+          <img src="/static/MCM-LIN.png">
         </div>
       </div>
     </div>

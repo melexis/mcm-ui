@@ -25,7 +25,7 @@ function computedMessage (log) {
   const minutes = (`0${log.time.getMinutes()}`).slice(-2);
   const seconds = (`0${log.time.getSeconds()}`).slice(-2);
   const milliseconds = (`00${log.time.getMilliseconds()}`).slice(-3);
-  return `[{${hours}:${minutes}:${seconds}:${milliseconds}}] ${log.message}`;
+  return `[${hours}:${minutes}:${seconds}:${milliseconds}] ${log.message}`;
 }
 </script>
 
