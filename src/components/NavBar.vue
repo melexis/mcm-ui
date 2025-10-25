@@ -7,9 +7,30 @@ const master = useMaster();
 
 function computedTitle () {
   if (master.isSelected()) {
-    return 'Melexis Compact Master 81339';
+    return master.getProductName();
   }
   return 'Melexis Compact Master';
+}
+
+function computedHasUart () {
+  if (master.getProductName() === 'Melexis Compact Master 81339') {
+    return true;
+  }
+  return false;
+}
+
+function computedHasLin () {
+  if (master.getProductName() === 'Melexis Compact Master LIN') {
+    return true;
+  }
+  return false;
+}
+
+function computedHasPpm () {
+  if (master.getProductName() === 'Melexis Compact Master LIN') {
+    return true;
+  }
+  return false;
 }
 
 function disconnect () {
@@ -43,7 +64,56 @@ function disconnect () {
         class="collapse navbar-collapse"
       >
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item dropdown active">
+          <li
+            v-if="computedHasLin()"
+            class="nav-item dropdown active"
+          >
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              LIN
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <router-link
+                  class="dropdown-item disabled"
+                >
+                  commander
+                </router-link>
+              </li>
+            </ul>
+          </li>
+          <li
+            v-if="computedHasPpm()"
+            class="nav-item dropdown active"
+          >
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              PPM
+            </a>
+            <div class="dropdown-menu">
+              <li>
+                <router-link
+                  class="dropdown-item disabled"
+                >
+                  one2one programmer
+                </router-link>
+              </li>
+            </div>
+          </li>
+          <li
+            v-if="computedHasUart()"
+            class="nav-item dropdown active"
+          >
             <a
               class="nav-link dropdown-toggle"
               href="#"
@@ -161,5 +231,9 @@ function disconnect () {
   }
   .dropdown-divider {
     border-color: #fff;
+  }
+  .disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 </style>

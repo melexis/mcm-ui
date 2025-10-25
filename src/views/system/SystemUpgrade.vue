@@ -17,14 +17,25 @@ const progbarIsAnimated = ref(false);
 const firmwareRevRead = ref(false);
 const firmwareVersion = ref('');
 const upgradeAvailable = ref(false);
-const newFirmware = 'v0.18.0';
+const firmwareBaseNames = {
+  'Melexis Compact Master 81339': 'mcm-81339',
+  'Melexis Compact Master LIN': 'mcm-lin',
+};
+const firmwareLatestRev = {
+  'mcm-81339': 'v0.18.0',
+  'mcm-lin': 'v0.1.0',
+};
+let firmwareBaseName = '';
+const firmwareNewRev = ref('');
 
 onMounted(() => {
+  firmwareBaseName = firmwareBaseNames[master.getProductName()];
+  firmwareNewRev.value = firmwareLatestRev[firmwareBaseName];
   master.getVersion()
     .then((version) => {
       firmwareVersion.value = version;
       try {
-        upgradeAvailable.value = gt(newFirmware, firmwareVersion.value);
+        upgradeAvailable.value = gt(firmwareNewRev.value, firmwareVersion.value);
       } catch (error) {
         upgradeAvailable.value = true;
       }
@@ -44,7 +55,7 @@ function upgradeClicked () {
   progbarIsAnimated.value = true;
   statusMsg.value = 'Getting new binary...';
   return axios
-    .get(`${import.meta.env.BASE_URL}mcm-81339-${newFirmware.replaceAll('.', '-')}.bin`,
+    .get(`${import.meta.env.BASE_URL}${firmwareBaseName}-${firmwareNewRev.value.replaceAll('.', '-')}.bin`,
       {
         responseType: 'arraybuffer',
         headers: { 'Content-Type': 'application/octet-stream' }
@@ -85,7 +96,7 @@ function computedBusy () {
       </div>
       <div v-if="firmwareRevRead">
         <div v-if="upgradeAvailable">
-          <p>Press 'Upgrade' to upgrade the firmware from {{ firmwareVersion }} to {{ newFirmware }}.</p>
+          <p>Press 'Upgrade' to upgrade the firmware from {{ firmwareVersion }} to {{ firmwareNewRev }}.</p>
           <div class="form-group">
             <button
               class="btn btn-primary"

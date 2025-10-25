@@ -280,6 +280,10 @@ export class Master {
     return this.vendorControlTransferOut(MCM_VENDOR_REQUEST_IDENTIFY, 1);
   }
 
+  getProductName () {
+    return this.state.device.productName;
+  }
+
   getVersion () {
     return this.vendorControlTransferIn(MCM_VENDOR_REQUEST_INFO, MCM_INFO_VERSION, 255)
       .then((result) => {
