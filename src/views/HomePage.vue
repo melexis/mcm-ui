@@ -3,6 +3,10 @@ import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import { useMaster } from '../js/usbMaster';
 
+import Mcm81339Image from '../../static/MCM-81339.png'
+import McmLinImage from '../../static/MCM-LIN.png'
+import MlxLogoImage from '../../static/logo.png'
+
 const router = useRouter();
 const route = useRoute();
 const usbDevices = ref();
@@ -103,12 +107,12 @@ function computedMasterIsMcmLin () {
 
 function computedProductImage (productName) {
   if (productName === 'Melexis Compact Master 81339') {
-    return 'static/MCM-81339.png';
+    return Mcm81339Image;
   }
   if (productName === 'Melexis Compact Master LIN') {
-    return 'static/MCM-LIN.png';
+    return McmLinImage;
   }
-  return 'static/logo.png';
+  return MlxLogoImage;
 }
 </script>
 
