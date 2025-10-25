@@ -22,6 +22,40 @@ const routes = [
           import(/* webpackChunkName: "app" */ '@/views/TermsOfUse.vue'),
       },
       {
+        path: 'lin',
+        meta: { requiresMaster: true },
+        children: [
+          {
+            path: '',
+            name: 'lin',
+            redirect: { name: 'lin-commander' },
+          },
+          {
+            path: 'commander',
+            name: 'lin-commander',
+            component: () =>
+              import(/* webpackChunkName: "app" */ '@/views/lin/LinCommander.vue'),
+          },
+        ],
+      },
+      {
+        path: 'ppm',
+        meta: { requiresMaster: true },
+        children: [
+          {
+            path: '',
+            name: 'ppm',
+            redirect: { name: 'ppm-one2one' },
+          },
+          {
+            path: 'one2one',
+            name: 'ppm-one2one',
+            component: () =>
+              import(/* webpackChunkName: "app" */ '@/views/ppm/One2One.vue'),
+          },
+        ],
+      },
+      {
         path: 'uart',
         meta: { requiresMaster: true },
         children: [

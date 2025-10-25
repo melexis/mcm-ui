@@ -80,7 +80,8 @@ function disconnect () {
             <ul class="dropdown-menu">
               <li>
                 <router-link
-                  class="dropdown-item disabled"
+                  class="dropdown-item"
+                  :to="{ name: 'lin-commander' }"
                 >
                   commander
                 </router-link>
@@ -103,7 +104,8 @@ function disconnect () {
             <div class="dropdown-menu">
               <li>
                 <router-link
-                  class="dropdown-item disabled"
+                  class="dropdown-item"
+                  :to="{ name: 'ppm-one2one' }"
                 >
                   one2one programmer
                 </router-link>
@@ -231,9 +233,5 @@ function disconnect () {
   }
   .dropdown-divider {
     border-color: #fff;
-  }
-  .disabled {
-    opacity: 0.5;
-    pointer-events: none;
   }
 </style>
