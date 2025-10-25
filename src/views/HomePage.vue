@@ -103,12 +103,12 @@ function computedMasterIsMcmLin () {
 
 function computedProductImage (productName) {
   if (productName === 'Melexis Compact Master 81339') {
-    return '/static/MCM-81339.png';
+    return 'static/MCM-81339.png';
   }
   if (productName === 'Melexis Compact Master LIN') {
-    return '/static/MCM-LIN.png';
+    return 'static/MCM-LIN.png';
   }
-  return '/static/logo.png';
+  return 'static/logo.png';
 }
 </script>
 
