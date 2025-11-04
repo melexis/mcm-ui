@@ -3,9 +3,9 @@ import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import { useMaster } from '../js/usbMaster';
 
-import Mcm81339Image from '../../static/MCM-81339.png'
-import McmLinImage from '../../static/MCM-LIN.png'
-import MlxLogoImage from '../../static/logo.png'
+import Mcm81339Image from '../../static/MCM-81339.png';
+import McmLinImage from '../../static/MCM-LIN.png';
+import MlxLogoImage from '../../static/logo.png';
 
 const router = useRouter();
 const route = useRoute();
