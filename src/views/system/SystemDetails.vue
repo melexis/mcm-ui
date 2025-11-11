@@ -113,9 +113,9 @@ function usecToTime (usec) {
       >
         <li><b>Version Information</b></li>
         <ul>
-          <li>Type: {{ master.state.device.productName }}</li>
+          <li>Type: {{ master.device.productName }}</li>
           <li>Firmware version: {{ firmwareVersion }}</li>
-          <li>Serial number: {{ master.state.device.serialNumber }}</li>
+          <li>Serial number: {{ master.device.serialNumber }}</li>
           <li>Last reset reason: {{ resetReason }}</li>
           <li>Up time: {{ upTime }}</li>
         </ul>

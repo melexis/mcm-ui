@@ -212,7 +212,8 @@ function disconnect () {
 
 <style scoped>
   .navbar{
-    background-color: #00354b;
+    background-image: radial-gradient(circle at 50% 0,#004159,#002839 59%);
+/*    background-color: #00354b; */
     font-weight: bold;
     margin-bottom: 0px;
     padding-left:0
@@ -227,9 +228,8 @@ function disconnect () {
     color: #fff;
     font-weight: bold;
   }
-  .dropdown-menu>li>a:hover{
+  .dropdown-item:hover {
     color: #00354b;
-    font-weight: bold;
   }
   .dropdown-divider {
     border-color: #fff;
