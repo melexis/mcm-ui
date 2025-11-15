@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue';
-import { MelexisMaster } from '../../js/melexisMaster.js';
-import { lIfcWakeUp, lS2m, lM2s } from '../../js/linComm.js';
-import { LinScript, frameTypeWakeUp, frameTypeS2M, frameTypeM2S } from '../../js/linScript.js';
+import { onBeforeUnmount, ref } from 'vue';
+
+import { useMaster, MasterMode } from '../../js/usbMaster';
+import { McmLin } from '../../js/usbMcmLin';
+
+import { LinScript, frameTypeWakeUp, frameTypeS2M, frameTypeM2S } from '../../js/linScript';
 
 import StatusMessage from '../../components/StatusMessage.vue';
 import AppLogger from '../../components/AppLogger.vue';
@@ -17,8 +19,14 @@ const scheduleRunning = ref(false);
 const delayTime = ref(50);
 
 let linScript = null;
-let master = null;
 let schedulePosition = 0;
+
+const master = useMaster();
+const mcm = new McmLin(master);
+
+onBeforeUnmount(() => {
+  mcm.teardown();
+});
 
 function onFileChange (e) {
   const files = e.target.files || e.dataTransfer.files;
@@ -46,96 +54,47 @@ function onLoadFile () {
   linScript.loadFile(linFile.value);
 }
 
-function connectMaster () {
-  return new Promise(function (resolve, reject) {
+async function handleSequence (seqNr, frameNr = 0) {
+  if (mcm.master.mode !== MasterMode.LIN) {
     logInfo('Connecting...');
-    master = new MelexisMaster();
-    master.on('closed', function () {
-      stopSchedule();
-      master = null;
-    });
-    master.open(location.hostname).then(
-      function () {
-        resolve();
-      },
-      function (error) {
-        stopSchedule();
-        master = null;
-        reject(error);
-      }
-    );
-  });
-}
+    await mcm.setup();
+  }
 
-function handleSequence (seqNr, frameNr = 0) {
-  return new Promise(function (resolve, reject) {
-    if (master === null || typeof (master) === 'undefined') {
-      connectMaster().then(
-        function () {
-          handleSequence(seqNr).then(
-            function () { resolve(); },
-            function (error) { reject(error); }
-          );
-        },
-        function (error) {
-          stopSchedule();
-          reject(error);
+  const script = linScript.getScriptEntry(seqNr);
+  while (true) {
+    const frame = script.frames[frameNr];
+    switch (frame.type) {
+      case frameTypeWakeUp:
+        try {
+          await mcm.lIfcWakeUp();
+          logInfo(`${script.name} : wake up pulse`);
+        } catch (error) {
+          logError(`${script.name} : failed with ${error}`);
         }
-      );
-    } else {
-      const script = linScript.getScriptEntry(seqNr);
-      const frame = script.frames[frameNr];
-      const nextFrame = function () {
-        frameNr += 1;
-        if (frameNr < script.frames.length) {
-          handleSequence(seqNr, frameNr).then(
-            function () { resolve(); },
-            function (error) { reject(error); }
-          );
-        } else {
-          resolve();
+        break;
+      case frameTypeS2M:
+        try {
+          const data = await mcm.lS2m(linScript.getBaudrate(), frame.enhancedCrc, frame.frameId, frame.datalength);
+          logInfo(`${script.name} : ${byteToHexStr(frame.frameId)} - ${payloadToHexStr(data)}`);
+        } catch (error) {
+          logError(`${script.name} : ${byteToHexStr(frame.frameId)} - ${error}`);
         }
-      };
-      switch (frame.type) {
-        case frameTypeWakeUp:
-          lIfcWakeUp(master).then(
-            function () {
-              logInfo(`${script.name} : wake up pulse`);
-              nextFrame();
-            },
-            function (error) {
-              logError(`${script.name} : failed with ${error}`);
-              nextFrame();
-            }
-          );
-          break;
-        case frameTypeS2M:
-          lS2m(master, linScript.getBaudrate(), frame.enhancedCrc, frame.frameId, frame.datalength).then(
-            function (data) {
-              logInfo(`${script.name} : ${byteToHexStr(frame.frameId)} - ${payloadToHexStr(data)}`);
-              nextFrame();
-            },
-            function (error) {
-              logError(`${script.name} : ${byteToHexStr(frame.frameId)} - ${error}`);
-              nextFrame();
-            }
-          );
-          break;
-        case frameTypeM2S:
-          lM2s(master, linScript.getBaudrate(), frame.enhancedCrc, frame.frameId, frame.payload).then(
-            function () {
-              logInfo(`${script.name} : ${byteToHexStr(frame.frameId)} - ${payloadToHexStr(frame.payload)}`);
-              nextFrame();
-            },
-            function (error) {
-              logError(`${script.name} : ${byteToHexStr(frame.frameId)} - ${error}`);
-              nextFrame();
-            }
-          );
-          break;
-      }
+        break;
+      case frameTypeM2S:
+        try {
+          await mcm.lM2s(linScript.getBaudrate(), frame.enhancedCrc, frame.frameId, frame.payload);
+          logInfo(`${script.name} : ${byteToHexStr(frame.frameId)} - ${payloadToHexStr(frame.payload)}`);
+        } catch (error) {
+          logError(`${script.name} : ${byteToHexStr(frame.frameId)} - ${error}`);
+        }
+        break;
     }
-  });
+
+    frameNr += 1;
+    if (frameNr >= script.frames.length) {
+      break;
+    }
+  }
 }
 
 function startSchedule () {
@@ -144,24 +103,14 @@ function startSchedule () {
   stepSchedule();
 }
 
-function stepSchedule () {
-  if (scheduleRunning.value === true) {
-    handleSequence(schedulePosition).then(
-      function () {
-        schedulePosition += 1;
-        if (schedulePosition >= linScript.getScriptLength()) {
-          schedulePosition = 0;
-        }
-        if (scheduleRunning.value === true) {
-          setTimeout(function () {
-            stepSchedule();
-          }, parseInt(delayTime.value));
-        }
-      },
-      function (error) {
-        logError(error);
-      }
-    );
+async function stepSchedule () {
+  while (scheduleRunning.value === true) {
+    await handleSequence(schedulePosition);
+    schedulePosition += 1;
+    if (schedulePosition >= linScript.getScriptLength()) {
+      schedulePosition = 0;
+    }
+    await new Promise(resolve => setTimeout(resolve, parseInt(delayTime.value)));
   }
 }
 
@@ -248,20 +197,20 @@ function logError (message) {
                   Schedule: {{ linScript.getSchedulename() }}
                 </th>
                 <th class="text-right">
-                  <img
-                    src="@/assets/media-play-6x.png"
-                    width="24"
+                  <span
                     title="Run Schedule"
                     :hidden="scheduleRunning"
                     @click="startSchedule()"
                   >
-                  <img
-                    src="@/assets/media-stop-6x.png"
-                    width="24"
+                    <font-awesome-icon icon="fa-solid fa-play" />
+                  </span>
+                  <span
                     title="Stop Schedule"
                     :hidden="!scheduleRunning"
                     @click="stopSchedule()"
                   >
+                    <font-awesome-icon icon="fa-solid fa-stop" />
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -275,11 +224,11 @@ function logError (message) {
                   {{ linScript.getScriptEntry(index-1).name }}
                 </td>
                 <td class="text-right">
-                  <img
-                    src="@/assets/media-play-6x.png"
-                    width="24"
+                  <span
                     title="Execute Sequence"
                   >
+                    <font-awesome-icon icon="fa-solid fa-play" />
+                  </span>
                 </td>
               </tr>
             </tbody>

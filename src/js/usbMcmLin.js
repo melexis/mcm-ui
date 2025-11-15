@@ -1,4 +1,4 @@
-import { convertUint32ToUint8Array, MasterMode, mcmMlxMessageId, mcmVendorRequest } from '../js/usbMaster';
+import { convertUint16ToUint8Array, convertUint32ToUint8Array, MasterMode, mcmMlxMessageId, mcmVendorRequest } from '../js/usbMaster';
 
 const MCM_CONFIG_HOSTNAME = 0x00;
 const MCM_CONFIG_WIFI_SSID = 0x01;
@@ -11,6 +11,11 @@ const MEMORY_NVRAM = 0;
 
 const OPP_PROGRAM = 0;
 const OPP_VERIFY = 1;
+
+const mcmLinCommand = {
+  SEND_WAKEUP: 0x2200,
+  HANDLE_MESSAGE: 0x2201,
+};
 
 function convertStringToBytes (string) {
   const strBytes = new TextEncoder().encode(string);
@@ -146,5 +151,65 @@ export class McmLin {
       info.link_up = false;
     }
     return info;
+  }
+
+  async setup () {
+    this.master.mode = MasterMode.LIN;
+    return this.master.vendorControlTransferOut(mcmVendorRequest.LIN_COMM, 1);
+  }
+
+  async teardown () {
+    await this.master.vendorControlTransferOut(mcmVendorRequest.LIN_COMM, 0);
+    this.master.mode = MasterMode.NONE;
+  }
+
+  lIfcWakeUp () {
+    return this.master.sendBulkMlxMessageAndWaitResponse(
+      mcmLinCommand.SEND_WAKEUP,
+      convertUint16ToUint8Array(200),
+      1000
+    );
+  }
+
+  lM2s (baudrate, enhancedCrc, frameId, payload) {
+    const messLength = 6 + payload.length;
+    const message = new Uint8Array(messLength);
+    message.set(convertUint16ToUint8Array(baudrate), 0);
+    message[2] = payload.length;
+    message[3] = 1;
+    message[4] = enhancedCrc ? 1 : 0;
+    message[5] = frameId;
+    message.set(payload, 6);
+    return this.master.sendBulkMlxMessageAndWaitResponse(
+      mcmLinCommand.HANDLE_MESSAGE,
+      message,
+      1000
+    );
+  }
+
+  lS2m (baudrate, enhancedCrc, frameId, datalength) {
+    const message = new Uint8Array(6);
+    message.set(convertUint16ToUint8Array(baudrate), 0);
+    message[2] = datalength;
+    message[3] = 0;
+    message[4] = enhancedCrc ? 1 : 0;
+    message[5] = frameId;
+    return this.master.sendBulkMlxMessageAndWaitResponse(
+      mcmLinCommand.HANDLE_MESSAGE,
+      message,
+      1000
+    );
+  }
+
+  ldDiagnostic (master, nad, baudrate, sid, payload) {
+    throw new Error('method not yet implemented in MCM');
+  }
+
+  ldSendMessage (master, nad, baudrate, sid, payload) {
+    throw new Error('method not yet implemented in MCM');
+  }
+
+  ldReceiveMessage (master, nad, baudrate, sid) {
+    throw new Error('method not yet implemented in MCM');
   }
 }
