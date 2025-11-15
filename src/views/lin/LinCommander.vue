@@ -156,13 +156,13 @@ function logError (message) {
         <input
           id="linFile"
           type="file"
-          @change="onFileChange"
           accept=".lin"
+          @change="onFileChange"
         >
         <button
           type="button"
-          @click="onLoadFile()"
           class="btn btn-primary"
+          @click="onLoadFile()"
         >
           Load LIN file
         </button>
@@ -175,21 +175,21 @@ function logError (message) {
   </div>
   <div class="row">
     <div
-      class="container"
       v-if="!fileLoaded"
+      class="container"
     >
       {{ fileStatus }}
     </div>
     <div
-      class="container"
       v-if="fileLoaded"
+      class="container"
     >
       <br>
       <div class="row">
         <div class="col-md-4">
           <table
-            class="table table-sm table-striped"
             id="schedule-table"
+            class="table table-sm table-striped"
           >
             <thead>
               <tr>
@@ -197,20 +197,24 @@ function logError (message) {
                   Schedule: {{ linScript.getSchedulename() }}
                 </th>
                 <th class="text-right">
-                  <span
+                  <button
+                    class="btn-font-awesome"
+                    type="button"
                     title="Run Schedule"
                     :hidden="scheduleRunning"
                     @click="startSchedule()"
                   >
                     <font-awesome-icon icon="fa-solid fa-play" />
-                  </span>
-                  <span
+                  </button>
+                  <button
+                    class="btn-font-awesome"
+                    type="button"
                     title="Stop Schedule"
                     :hidden="!scheduleRunning"
                     @click="stopSchedule()"
                   >
                     <font-awesome-icon icon="fa-solid fa-stop" />
-                  </span>
+                  </button>
                 </th>
               </tr>
             </thead>
@@ -224,11 +228,13 @@ function logError (message) {
                   {{ linScript.getScriptEntry(index-1).name }}
                 </td>
                 <td class="text-right">
-                  <span
+                  <button
+                    class="btn-font-awesome"
+                    type="button"
                     title="Execute Sequence"
                   >
                     <font-awesome-icon icon="fa-solid fa-play" />
-                  </span>
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -237,13 +243,13 @@ function logError (message) {
             <div class="form-group">
               <label for="txtDelay">Delay [ms]</label>
               <input
+                id="txtDelay"
+                v-model="delayTime"
                 type="number"
                 step="1"
                 min="10"
                 max="1000.0"
                 class="form-control"
-                id="txtDelay"
-                v-model="delayTime"
               >
             </div>
           </form>

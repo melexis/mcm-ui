@@ -79,6 +79,11 @@ const progbarIsAnimated = ref(false);
 const master = useMaster();
 const mcm = new McmLin(master);
 
+function setErrorMessage (msg, isError = true) {
+  errorMsg.value = msg;
+  isErrorMsg.value = isError;
+}
+
 function onFlashFileChange (e) {
   const files = e.target.files || e.dataTransfer.files;
   flashFile.value = null;
@@ -108,15 +113,15 @@ function onNvramFileChange (e) {
 
 function program (operation, memory) {
   if (enableBroadcast.value && selProduct.value == null) {
-    errorMsg.value = 'Please select a product first';
-    isErrorMsg.value = true;
+    setErrorMessage('Please select a product first');
     return;
   }
+
   let file;
   progbarProgress.value = 0;
   progbarIsAnimated.value = true;
-  errorMsg.value = '';
-  isErrorMsg.value = false;
+  setErrorMessage('', false);
+
   if (memory === 'Flash') {
     file = flashFile.value;
   } else if (memory === 'Flash_CS') {
@@ -124,35 +129,33 @@ function program (operation, memory) {
   } else {
     file = nvramFile.value;
   }
+
   if (file === null) {
     progbarProgress.value = 0;
     progbarIsAnimated.value = false;
-    errorMsg.value = 'Select a hex file first';
-    isErrorMsg.value = true;
+    setErrorMessage('Select a hex file first');
     return;
   }
   doAction(operation, memory, file)
     .then(() => {
       progbarProgress.value = 100;
       progbarIsAnimated.value = false;
-      errorMsg.value = `${operation} ${memory} finished successfully`;
-      isErrorMsg.value = false;
+      setErrorMessage(`${operation} ${memory} finished successfully`, false);
     })
     .catch((error) => {
       progbarProgress.value = 0;
       progbarIsAnimated.value = false;
-      errorMsg.value = error.message;
-      isErrorMsg.value = true;
+      setErrorMessage(error.message);
     });
 }
 
 function doAction (operation, memory, file) {
   progbarProgress.value = 10;
-  errorMsg.value = 'Connection opened...';
+  setErrorMessage('Connection opened...', false);
   return getFileContent(file)
     .then((hexfile) => {
       progbarProgress.value = 15;
-      errorMsg.value = `File successfully processed, ${memory} operation in progress...`;
+      setErrorMessage(`File successfully processed, ${memory} operation in progress...`, false);
       return mcm.bootload(
         hexfile,
         operation,
@@ -391,6 +394,8 @@ function computedNvramVerificationEnabled () {
 
 <style scoped>
   .mlx-file {
-    width: 100%
+    width: 100%;
+    padding: 5px;
+    margin: 5px 0;
   }
 </style>
