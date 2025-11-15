@@ -80,7 +80,8 @@ function disconnect () {
             <ul class="dropdown-menu">
               <li>
                 <router-link
-                  class="dropdown-item disabled"
+                  class="dropdown-item"
+                  :to="{ name: 'lin-commander' }"
                 >
                   commander
                 </router-link>
@@ -103,7 +104,8 @@ function disconnect () {
             <div class="dropdown-menu">
               <li>
                 <router-link
-                  class="dropdown-item disabled"
+                  class="dropdown-item"
+                  :to="{ name: 'ppm-one2one' }"
                 >
                   one2one programmer
                 </router-link>
@@ -210,7 +212,8 @@ function disconnect () {
 
 <style scoped>
   .navbar{
-    background-color: #00354b;
+    background-image: radial-gradient(circle at 50% 0,#004159,#002839 59%);
+/*    background-color: #00354b; */
     font-weight: bold;
     margin-bottom: 0px;
     padding-left:0
@@ -225,15 +228,10 @@ function disconnect () {
     color: #fff;
     font-weight: bold;
   }
-  .dropdown-menu>li>a:hover{
+  .dropdown-item:hover {
     color: #00354b;
-    font-weight: bold;
   }
   .dropdown-divider {
     border-color: #fff;
-  }
-  .disabled {
-    opacity: 0.5;
-    pointer-events: none;
   }
 </style>

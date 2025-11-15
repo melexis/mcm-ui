@@ -27,8 +27,9 @@ const gitVersion = gitVersionData;
     width:100%;
     bottom:0%;
     color: #FFF;
-    background-color: #00354b;
+    /*background-color: #00354b;*/
     text-align: center;
+    background-image: radial-gradient(circle at 50% 0,#004159,#002839 59%);
   }
   a:link{
     text-decoration: none;

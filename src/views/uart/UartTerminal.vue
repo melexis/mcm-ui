@@ -78,7 +78,7 @@ function receivedMessage (message) {
   const time = new Date();
   const type = 'rx';
   const decodedMessage = new TextDecoder().decode(message);
-  logContent.value.push({ time, type, decodedMessage });
+  logContent.value.push({ time, type, message: decodedMessage });
   return message.length;
 }
 

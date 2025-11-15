@@ -11,12 +11,12 @@ import VueAxios from 'vue-axios';
 import { MasterPlugin } from './js/usbMaster';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faLink, faLinkSlash, faEyeSlash, faEye, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faLinkSlash, faEyeSlash, faEye, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 import 'bootstrap/dist/js/bootstrap.min.js';
 
-library.add(faLink, faLinkSlash, faEyeSlash, faEye, faTrashCan);
+library.add(faLink, faLinkSlash, faEyeSlash, faEye, faPlay, faStop, faTrashCan);
 
 const app = createApp(App);
 
