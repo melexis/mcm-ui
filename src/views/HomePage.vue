@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue';
 import { useMaster } from '../js/usbMaster';
 
 import Mcm81339Image from '../../static/MCM-81339.png';
+import Mcm81349Image from '../../static/MCM-81349.png';
 import McmLinImage from '../../static/MCM-LIN.png';
 import MlxLogoImage from '../../static/logo.png';
 
@@ -59,6 +60,11 @@ function requestDevice () {
       productId: 0x6F09,
       classCode: 0xFF, // vendor-specific
     },
+    {
+      vendorId: 0x03E9,
+      productId: 0x6F0A,
+      classCode: 0xFF, // vendor-specific
+    },
   ];
   navigator.usb.requestDevice({ filters })
     .then((device) => {
@@ -101,6 +107,10 @@ function computedMasterIsMcm81339 () {
   return master.getProductName() === 'Melexis Compact Master 81339';
 }
 
+function computedMasterIsMcm81349 () {
+  return master.getProductName() === 'Melexis Compact Master 81349';
+}
+
 function computedMasterIsMcmLin () {
   return master.getProductName() === 'Melexis Compact Master LIN';
 }
@@ -108,6 +118,9 @@ function computedMasterIsMcmLin () {
 function computedProductImage (productName) {
   if (productName === 'Melexis Compact Master 81339') {
     return Mcm81339Image;
+  }
+  if (productName === 'Melexis Compact Master 81349') {
+    return Mcm81349Image;
   }
   if (productName === 'Melexis Compact Master LIN') {
     return McmLinImage;
@@ -191,7 +204,7 @@ function computedProductImage (productName) {
       <br>
       <h1>Home</h1>
       <div
-        v-if="computedMasterIsMcm81339()"
+        v-if="computedMasterIsMcm81339() || computedMasterIsMcm81349()"
         class="row"
       >
         <div class="col-md-8">
@@ -199,7 +212,7 @@ function computedProductImage (productName) {
           <p>The device is for development only.</p>
         </div>
         <div class="col-md-4">
-          <img src="/static/MCM-81339.png">
+          <img :src="computedProductImage(master.getProductName())">
         </div>
       </div>
       <div
