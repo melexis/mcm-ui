@@ -13,7 +13,8 @@ function computedTitle () {
 }
 
 function computedHasUart () {
-  if (master.getProductName() === 'Melexis Compact Master 81339') {
+  if ((master.getProductName() === 'Melexis Compact Master 81339') ||
+      (master.getProductName() === 'Melexis Compact Master 81349')) {
     return true;
   }
   return false;
