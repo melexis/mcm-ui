@@ -40,6 +40,7 @@ const MCM_INFO_UP_TIME = 0x02;
 export const MasterMode = {
   NONE: null,
   LIN: 'lin',
+  BARE: 'bare',
   BOOTLOADER: 'bootloader',
   HEXTRANSFER: 'hextransfer',
   ERROR: 'error',
