@@ -177,7 +177,7 @@ export class McmUart {
    */
   async bootload (hexfile, operation, memory, manualPower, bitRate, fullDuplex, txPin, flashKeys) {
     if (!Array.isArray(flashKeys) || flashKeys.length < 4) {
-      return Promise.reject(new Error('flashKeys must be an array of 4 values'));
+      throw new Error('flashKeys must be an array of 4 values');
     }
 
     if (this.master.mode !== MasterMode.NONE) {
