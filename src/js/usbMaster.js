@@ -329,6 +329,9 @@ export class Master {
 
   /** Perform a vendor-specific control transfer IN.
    *
+   * @param {number} bRequest - vendor-specific command.
+   * @param {number} wValue - vendor-specific request parameters.
+   * @param {number} length - maximum number of bytes to read from the device.
    * @returns {Promise<Uint8Array>} Received data
    */
   async vendorControlTransferIn (bRequest, wValue, length) {
@@ -443,6 +446,10 @@ export class Master {
     this.mode = MasterMode.NONE;
   }
 
+  /** Request the connected hardware to identify itself.
+   *
+   * @returns {Promise<void>} Resolves when the identify request completes.
+   */
   identify () {
     return this.vendorControlTransferOut(mcmVendorRequest.IDENTIFY, 1);
   }
@@ -451,6 +458,10 @@ export class Master {
     return this.state._device.productName;
   }
 
+  /** Getter for the connected hardware software version information.
+   *
+   * @returns {string} The software version information for the connected HW.
+   */
   async getVersion () {
     const result = await this.vendorControlTransferIn(mcmVendorRequest.INFO, MCM_INFO_VERSION, 255);
     return new TextDecoder().decode(result);

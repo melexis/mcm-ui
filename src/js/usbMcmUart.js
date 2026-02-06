@@ -72,19 +72,35 @@ export class McmUart {
     this.master = master;
   }
 
+  /** Disable power to slave devices.
+   *
+   * @returns {Promise<any>}
+   */
   disableSlavePower () {
     return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 0);
   }
 
+  /** Enable power to slave devices.
+   *
+   * @returns {Promise<any>}
+   */
   enableSlavePower () {
     return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 1);
   }
 
+  /** Check if slave power is enabled.
+   *
+   * @returns {Promise<boolean>}
+   */
   async isSlavePowerEnabled () {
     const response = await this.master.vendorControlTransferIn(mcmVendorRequest.SLAVE_CTRL, 0, 255);
     return response[0] === 1;
   }
 
+  /** Disable bare UART mode.
+   *
+   * @returns {Promise<void>} Resolves when bare UART mode was disabled.
+   */
   async disableBareUartMode () {
     rxBareUartBuffer = new Uint8Array([]);
     rxBareUartCallback = null;
@@ -92,6 +108,15 @@ export class McmUart {
     await this.master.stopBulkReceiver();
   }
 
+  /** Enable bare UART mode for raw communication.
+   *
+   * @param {number} bitRate - Baud rate.
+   * @param {number} dataBits - Number of data bits (5-8).
+   * @param {number} stopBits - Number of stop bits (1, 1.5, 2).
+   * @param {string} parity - Parity ('disabled', 'even', 'odd').
+   * @param {boolean} _halfDuplex - Optional half-duplex flag (not used).
+   * @returns {Promise<void>} Resolves when bare UART mode was enabled.
+   */
   async enableBareUartMode (rxCallback, bitRate, dataBits, stopBits, parity, halfDuplex) {
     rxBareUartCallback = rxCallback;
     const payload = new Uint8Array(8);
@@ -105,6 +130,12 @@ export class McmUart {
     rxBareUartBuffer = new Uint8Array([]);
   }
 
+  /** Send raw data to the device in bare UART mode.
+   *
+   * @param {Array<number>} data - Data to transmit.
+   * @returns {Promise<void>}
+   * @throws {Error} If the device is not in bare UART mode.
+   */
   async writeToBareUart (message) {
     if (this.master.mode !== MasterMode.BARE) {
       throw new Error('device needs to be put in bare uart mode first');
@@ -112,6 +143,12 @@ export class McmUart {
     await this.master.vendorTransferOut(message);
   }
 
+  /** Receive raw data from the device in bare UART mode.
+   *
+   * @param {number} length - Number of bytes to read.
+   * @returns {Promise<Array<number>>} Resolves with received data.
+   * @throws {Error} If the device is not in bare UART mode.
+   */
   receiveFromBareUart (length) {
     if (this.master.mode !== MasterMode.BARE) {
       return Promise.reject(new Error('device needs to be put in bare uart mode first'));
@@ -126,6 +163,18 @@ export class McmUart {
     return Promise.resolve(retval);
   }
 
+  /** Bootload a HEX file into the device.
+   *
+   * @param {string} hexfile - HEX file content.
+   * @param {string} operation - Bootloader operation.
+   * @param {string} memory - Target memory type.
+   * @param {boolean} manualPower - Whether manual power is applied.
+   * @param {number} bitRate - LIN bus bitrate.
+   * @param {boolean} fullDuplex - Full duplex mode.
+   * @param {number} txPin - TX pin identifier.
+   * @param {Array<number>} flashKeys - Optional flash key sequence.
+   * @returns {Promise<any>} Resolves with bootload response.
+   */
   async bootload (hexfile, operation, memory, manualPower, bitRate, fullDuplex, txPin, flashKeys) {
     if (!Array.isArray(flashKeys) || flashKeys.length < 4) {
       return Promise.reject(new Error('flashKeys must be an array of 4 values'));
