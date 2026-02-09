@@ -150,18 +150,18 @@ export class McmUart {
    * @returns {Promise<Array<number>>} Resolves with received data.
    * @throws {Error} If the device is not in bare UART mode.
    */
-  receiveFromBareUart (length) {
+  async receiveFromBareUart (length) {
     if (this.master.mode !== MasterMode.BARE) {
-      return Promise.reject(new Error('device needs to be put in bare uart mode first'));
+      throw new Error('device needs to be put in bare uart mode first');
     }
     if (length >= rxBareUartBuffer.length) {
       const retval = rxBareUartBuffer;
       rxBareUartBuffer = new Uint8Array([]);
-      return Promise.resolve(retval);
+      return retval;
     }
     const retval = rxBareUartBuffer.slice(0, length);
-    rxBareUartBuffer = rxBareUartBuffer.slice(length + 1);
-    return Promise.resolve(retval);
+    rxBareUartBuffer = rxBareUartBuffer.slice(length);
+    return retval;
   }
 
   /** Bootload a HEX file into the device.
