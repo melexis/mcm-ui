@@ -127,8 +127,8 @@ export class McmUart {
     payload[6] = MCM_UART_RAW_PARITY.indexOf(parity); // parity type (0:disabled; 2:even; 3:odd)
     payload[7] = halfDuplex ? 1 : 0; // 1: use half duplex communication
     this.master.startBulkReceiver(MasterMode.BARE, bulkRxCallbackBareUart);
-    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
     rxBareUartBuffer = new Uint8Array([]);
+    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
   }
 
   /** Send raw data to the device in bare UART mode.
@@ -187,9 +187,10 @@ export class McmUart {
 
     const decoder = new TextDecoder();
 
-    const waitBootloadDone = async () => {
+    const waitBootloadDone = async (timeout) => {
       let buffer = '';
-      while (true) {
+      const stopTime = Date.now() + timeout;
+      while (Date.now() < stopTime) {
         const chunk = await this.master.vendorTransferIn();
         buffer += decoder.decode(chunk);
         const newlineCharIndex = buffer.indexOf('\n');
@@ -199,11 +200,12 @@ export class McmUart {
           if (message.includes('OK')) {
             return;
           } else if (message.startsWith('FAIL:')) {
-            throw new Error(message.slice(message.indexOf('FAIL: ') + 6));
+            throw new Error(message.slice(message.indexOf('FAIL:') + 5));
           }
         }
         await new Promise(resolve => setTimeout(resolve, 50));
       }
+      throw new Error('Timeout during bootloading');
     };
 
     // transfer hex file
@@ -230,7 +232,7 @@ export class McmUart {
       // do bootloading action
       await this.master.vendorControlTransferOut(mcmVendorRequest.BOOTLOADER_DO, 0, payload);
 
-      await waitBootloadDone();
+      await waitBootloadDone(60000);
     } finally {
       this.master.mode = MasterMode.NONE;
     }
