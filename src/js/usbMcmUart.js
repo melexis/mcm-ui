@@ -147,7 +147,7 @@ export class McmUart {
   /** Receive raw data from the device in bare UART mode.
    *
    * @param {number} length - Number of bytes to read.
-   * @returns {Promise<Array<number>>} Resolves with received data.
+   * @returns {Promise<Uint8Array>} Resolves with received data.
    * @throws {Error} If the device is not in bare UART mode.
    */
   async receiveFromBareUart (length) {
