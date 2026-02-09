@@ -72,19 +72,35 @@ export class McmUart {
     this.master = master;
   }
 
+  /** Disable power to slave devices.
+   *
+   * @returns {Promise<any>}
+   */
   disableSlavePower () {
     return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 0);
   }
 
+  /** Enable power to slave devices.
+   *
+   * @returns {Promise<any>}
+   */
   enableSlavePower () {
     return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 1);
   }
 
+  /** Check if slave power is enabled.
+   *
+   * @returns {Promise<boolean>}
+   */
   async isSlavePowerEnabled () {
     const response = await this.master.vendorControlTransferIn(mcmVendorRequest.SLAVE_CTRL, 0, 255);
     return response[0] === 1;
   }
 
+  /** Disable bare UART mode.
+   *
+   * @returns {Promise<void>} Resolves when bare UART mode was disabled.
+   */
   async disableBareUartMode () {
     rxBareUartBuffer = new Uint8Array([]);
     rxBareUartCallback = null;
@@ -92,6 +108,16 @@ export class McmUart {
     await this.master.stopBulkReceiver();
   }
 
+  /** Enable bare UART mode for raw communication.
+   *
+   * @param {void} rxCallback - callback to be executed on receipt of data.
+   * @param {number} bitRate - Baud rate.
+   * @param {number} dataBits - Number of data bits (5-8).
+   * @param {number} stopBits - Number of stop bits (1, 1.5, 2).
+   * @param {string} parity - Parity ('disabled', 'even', 'odd').
+   * @param {boolean} halfDuplex - Optional half-duplex flag (not used).
+   * @returns {Promise<void>} Resolves when bare UART mode was enabled.
+   */
   async enableBareUartMode (rxCallback, bitRate, dataBits, stopBits, parity, halfDuplex) {
     rxBareUartCallback = rxCallback;
     const payload = new Uint8Array(8);
@@ -101,34 +127,58 @@ export class McmUart {
     payload[6] = MCM_UART_RAW_PARITY.indexOf(parity); // parity type (0:disabled; 2:even; 3:odd)
     payload[7] = halfDuplex ? 1 : 0; // 1: use half duplex communication
     this.master.startBulkReceiver(MasterMode.BARE, bulkRxCallbackBareUart);
-    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
     rxBareUartBuffer = new Uint8Array([]);
+    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
   }
 
-  async writeToBareUart (message) {
+  /** Send raw data to the device in bare UART mode.
+   *
+   * @param {Array<number>} data - Data to transmit.
+   * @returns {Promise<void>}
+   * @throws {Error} If the device is not in bare UART mode.
+   */
+  async writeToBareUart (data) {
     if (this.master.mode !== MasterMode.BARE) {
       throw new Error('device needs to be put in bare uart mode first');
     }
-    await this.master.vendorTransferOut(message);
+    await this.master.vendorTransferOut(data);
   }
 
-  receiveFromBareUart (length) {
+  /** Receive raw data from the device in bare UART mode.
+   *
+   * @param {number} length - Number of bytes to read.
+   * @returns {Promise<Uint8Array>} Resolves with received data.
+   * @throws {Error} If the device is not in bare UART mode.
+   */
+  async receiveFromBareUart (length) {
     if (this.master.mode !== MasterMode.BARE) {
-      return Promise.reject(new Error('device needs to be put in bare uart mode first'));
+      throw new Error('device needs to be put in bare uart mode first');
     }
     if (length >= rxBareUartBuffer.length) {
       const retval = rxBareUartBuffer;
       rxBareUartBuffer = new Uint8Array([]);
-      return Promise.resolve(retval);
+      return retval;
     }
     const retval = rxBareUartBuffer.slice(0, length);
-    rxBareUartBuffer = rxBareUartBuffer.slice(length + 1);
-    return Promise.resolve(retval);
+    rxBareUartBuffer = rxBareUartBuffer.slice(length);
+    return retval;
   }
 
+  /** Bootload a HEX file into the device.
+   *
+   * @param {string} hexfile - HEX file content.
+   * @param {string} operation - Bootloader operation.
+   * @param {string} memory - Target memory type.
+   * @param {boolean} manualPower - Whether manual power is applied.
+   * @param {number} bitRate - LIN bus bitrate.
+   * @param {boolean} fullDuplex - Full duplex mode.
+   * @param {number} txPin - TX pin identifier.
+   * @param {Array<number>} flashKeys - Optional flash key sequence.
+   * @returns {Promise<any>} Resolves with bootload response.
+   */
   async bootload (hexfile, operation, memory, manualPower, bitRate, fullDuplex, txPin, flashKeys) {
     if (!Array.isArray(flashKeys) || flashKeys.length < 4) {
-      return Promise.reject(new Error('flashKeys must be an array of 4 values'));
+      throw new Error('flashKeys must be an array of 4 values');
     }
 
     if (this.master.mode !== MasterMode.NONE) {
@@ -137,9 +187,10 @@ export class McmUart {
 
     const decoder = new TextDecoder();
 
-    const waitBootloadDone = async () => {
+    const waitBootloadDone = async (timeout) => {
       let buffer = '';
-      while (true) {
+      const stopTime = Date.now() + timeout;
+      while (Date.now() < stopTime) {
         const chunk = await this.master.vendorTransferIn();
         buffer += decoder.decode(chunk);
         const newlineCharIndex = buffer.indexOf('\n');
@@ -149,11 +200,12 @@ export class McmUart {
           if (message.includes('OK')) {
             return;
           } else if (message.startsWith('FAIL:')) {
-            throw new Error(message.slice(message.indexOf('FAIL: ') + 6));
+            throw new Error(message.slice(message.indexOf('FAIL:') + 5));
           }
         }
         await new Promise(resolve => setTimeout(resolve, 50));
       }
+      throw new Error('Timeout during bootloading');
     };
 
     // transfer hex file
@@ -180,7 +232,7 @@ export class McmUart {
       // do bootloading action
       await this.master.vendorControlTransferOut(mcmVendorRequest.BOOTLOADER_DO, 0, payload);
 
-      await waitBootloadDone();
+      await waitBootloadDone(60000);
     } finally {
       this.master.mode = MasterMode.NONE;
     }
