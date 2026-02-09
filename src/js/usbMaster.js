@@ -461,7 +461,7 @@ export class Master {
 
   /** Getter for the connected hardware software version information.
    *
-   * @returns {string} The software version information for the connected HW.
+   * @returns {Promise<string>} The software version information for the connected HW.
    */
   async getVersion () {
     const result = await this.vendorControlTransferIn(mcmVendorRequest.INFO, MCM_INFO_VERSION, 255);

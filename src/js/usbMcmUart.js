@@ -110,11 +110,12 @@ export class McmUart {
 
   /** Enable bare UART mode for raw communication.
    *
+   * @param {void} rxCallback - callback to be executed on receipt of data.
    * @param {number} bitRate - Baud rate.
    * @param {number} dataBits - Number of data bits (5-8).
    * @param {number} stopBits - Number of stop bits (1, 1.5, 2).
    * @param {string} parity - Parity ('disabled', 'even', 'odd').
-   * @param {boolean} _halfDuplex - Optional half-duplex flag (not used).
+   * @param {boolean} halfDuplex - Optional half-duplex flag (not used).
    * @returns {Promise<void>} Resolves when bare UART mode was enabled.
    */
   async enableBareUartMode (rxCallback, bitRate, dataBits, stopBits, parity, halfDuplex) {
@@ -136,11 +137,11 @@ export class McmUart {
    * @returns {Promise<void>}
    * @throws {Error} If the device is not in bare UART mode.
    */
-  async writeToBareUart (message) {
+  async writeToBareUart (data) {
     if (this.master.mode !== MasterMode.BARE) {
       throw new Error('device needs to be put in bare uart mode first');
     }
-    await this.master.vendorTransferOut(message);
+    await this.master.vendorTransferOut(data);
   }
 
   /** Receive raw data from the device in bare UART mode.
