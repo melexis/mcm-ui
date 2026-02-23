@@ -9,7 +9,7 @@ function computedTitle () {
   if (transport.isSelected()) {
     return transport.getProductName();
   }
-  return 'Melexis Compact transport';
+  return 'Melexis Compact Master';
 }
 
 function computedHasI2c () {

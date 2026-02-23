@@ -12,8 +12,13 @@ export const mcmVendorRequestPwm = {
 
 export class McmPwm extends McmGeneric {
   setup () {
-    this.transport.mode = MasterMode.PWM;
-    return this.transport.vendorControlTransferOut(mcmVendorRequest.PWM_COMM, mcmVendorRequestPwm.ENABLE);
+    try {
+      this.transport.mode = MasterMode.PWM;
+      return this.transport.vendorControlTransferOut(mcmVendorRequest.PWM_COMM, mcmVendorRequestPwm.ENABLE);
+    } catch (error) {
+      console.log(error);
+      this.transport.mode = MasterMode.ERROR;
+    }
   }
 
   async teardown () {

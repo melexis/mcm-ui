@@ -33,7 +33,7 @@ export class McmLin extends McmGeneric {
    * @returns {Promise<any>} Resolves with bootload response.
    */
   async bootload (hexfile, operation, memory, manualPower, bitRate, broadcast) {
-    if (this.transport.mode !== MasterMode.NONE) {
+    if (this.transport.mode === MasterMode.LIN) {
       await this.disableLinMode();
     }
 
@@ -67,13 +67,17 @@ export class McmLin extends McmGeneric {
   }
 
   async setup () {
-    this.transport.mode = MasterMode.LIN;
-    return this.transport.vendorControlTransferOut(mcmVendorRequest.LIN_COMM, 1);
+    try {
+      this.transport.mode = MasterMode.LIN;
+      await this.transport.vendorControlTransferOut(mcmVendorRequest.LIN_COMM, 1);
+    } catch (error) {
+      console.log(error);
+      this.transport.mode = MasterMode.ERROR;
+    }
   }
 
   async teardown () {
-    await this.transport.vendorControlTransferOut(mcmVendorRequest.LIN_COMM, 0);
-    this.transport.mode = MasterMode.NONE;
+    return this.disableLinMode();
   }
 
   lIfcWakeUp () {

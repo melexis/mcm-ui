@@ -22,14 +22,19 @@ const pwmStatFgFrequency = ref(null);
 let pollTimer = null;
 
 onMounted(async () => {
-  await mcm.enableSlavePower();
-  await mcm.setup();
+  try {
+    await mcm.enableSlavePower();
+    await mcm.setup();
 
-  await updateDutyCycle();
-  await updateFrequency();
-  await updateStatus();
+    await updateDutyCycle();
+    await updateFrequency();
+    await updateStatus();
 
-  pollTimer = setInterval(updateStatus, 250);
+    pollTimer = setInterval(updateStatus, 250);
+  } catch (error) {
+    isErrorMsg.value = true;
+    errorMsg.value = error.message;
+  }
 });
 
 onBeforeUnmount(async () => {
@@ -69,7 +74,7 @@ async function updateStatus () {
       (dutyCycle * 100) / (1 << 10)
     );
 
-    if (fgPeriod >= 0) {
+    if (fgPeriod > 0) {
       pwmStatFgFrequency.value = Math.round(1000000 / fgPeriod);
     } else {
       pwmStatFgFrequency.value = 'unknown';

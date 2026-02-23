@@ -33,14 +33,19 @@ const address = computed(() => {
 
 const addressValid = computed(() => {
   if (routeAddressHex) {
-    return true;
+    const v = parseInt(routeAddressHex, 16);
+    return !isNaN(v) && v >= 0x00 && v <= 0x7F;
   }
   return manualAddressValid.value;
 });
 
 onMounted(async () => {
-  await mcm.enableSlavePower();
-  await mcm.setup(400000);
+  try {
+    await mcm.enableSlavePower();
+    await mcm.setup(400000);
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 onBeforeUnmount(async () => {
@@ -132,7 +137,11 @@ async function rawWrite () {
   const bytes = parseHexBytes(writeData.value);
   const data = new Uint8Array([...regBytes, ...bytes]);
 
-  await mcm.write(address.value, data, 20);
+  try {
+    await mcm.write(address.value, data, 20);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 const directReadLength = ref(1);

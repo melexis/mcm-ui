@@ -175,7 +175,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.meta.requiresMaster) {
-    const transport = await useUsbTransport();
+    const transport = useUsbTransport();
     if (!transport.isSelected()) {
       return {
         path: '/webapp',

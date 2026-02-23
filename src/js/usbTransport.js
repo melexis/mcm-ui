@@ -446,7 +446,7 @@ export class UsbTransport {
       if (this.state.bulkReceiverRunning) {
         if (forceClose?.opened) {
           try {
-            forceClose.close();
+            await forceClose.close();
           } catch {}
         }
       }

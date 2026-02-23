@@ -103,9 +103,9 @@ export class McmGeneric {
   async getIpInfo () {
     const response = await this.transport.vendorControlTransferIn(mcmVendorRequest.CONFIG, MCM_CONFIG_WIFI_IP_INFO, 255);
     const info = {};
-    if (response.length > 0) {
+    if (response.length >= 12) {
       info.link_up = true;
-      const u32Resp = new Uint32Array(response.buffer);
+      const u32Resp = new Uint32Array(response.buffer, response.byteOffset, 3);
       info.ip = uint32ToIpString(u32Resp[0]);
       info.netmask = uint32ToIpString(u32Resp[1]);
       info.gateway = uint32ToIpString(u32Resp[2]);

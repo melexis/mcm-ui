@@ -10,8 +10,13 @@ const mcmI2cCommand = {
 
 export class McmI2c extends McmGeneric {
   setup (bitrate) {
-    this.transport.mode = MasterMode.I2C;
-    return this.transport.vendorControlTransferOut(mcmVendorRequest.I2C_COMM, 1, convertUint32ToUint8Array(bitrate));
+    try {
+      this.transport.mode = MasterMode.I2C;
+      return this.transport.vendorControlTransferOut(mcmVendorRequest.I2C_COMM, 1, convertUint32ToUint8Array(bitrate));
+    } catch (error) {
+      console.log(error);
+      this.transport.mode = MasterMode.ERROR;
+    }
   }
 
   async teardown () {
@@ -71,7 +76,7 @@ export class McmI2c extends McmGeneric {
   /** Read some data.
    *
    * @param {number} address - I2C address to be read.
-   * @param {number} readLength - length of data to be read.
+   * @param {number} length - length of data to be read.
    * @param {number} timeout - timeout to respect in communications
    * @returns {Promise<Uint8Array>} Resolves with the task result.
    */
