@@ -28,6 +28,13 @@ export class McmI2c extends McmGeneric {
     return result[0] === 1;
   }
 
+  /** Write some data.
+   *
+   * @param {number} address - I2C address to be written.
+   * @param {Uint8Array} data - data to be written.
+   * @param {number} timeout - timeout to respect in communications
+   * @returns {Promise<any>} Resolves with the task result.
+   */
   write (address, data, timeout) {
     const payload = new Uint8Array(8);
     payload.set(convertUint16ToUint8Array(address), 0);
@@ -40,6 +47,14 @@ export class McmI2c extends McmGeneric {
     );
   }
 
+  /** Write and then read some data.
+   *
+   * @param {number} address - I2C address to be written.
+   * @param {Uint8Array} writeData - data to be written.
+   * @param {number} readLength - length of data to be read.
+   * @param {number} timeout - timeout to respect in communications
+   * @returns {Promise<Uint8Array>} Resolves with the task result.
+   */
   writeRead (address, writeData, readLength, timeout) {
     const payload = new Uint8Array(10);
     payload.set(convertUint16ToUint8Array(address), 0);
@@ -53,6 +68,13 @@ export class McmI2c extends McmGeneric {
     );
   }
 
+  /** Read some data.
+   *
+   * @param {number} address - I2C address to be read.
+   * @param {number} readLength - length of data to be read.
+   * @param {number} timeout - timeout to respect in communications
+   * @returns {Promise<Uint8Array>} Resolves with the task result.
+   */
   read (address, length, timeout) {
     const payload = new Uint8Array(8);
     payload.set(convertUint16ToUint8Array(address), 0);
