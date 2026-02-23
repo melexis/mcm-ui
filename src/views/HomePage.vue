@@ -103,15 +103,15 @@ function computedHasUsbDevices () {
   return usbDevices.value.length !== 0;
 }
 
-function computedMasterIsMcm81339 () {
+function computedUsbTransportIsMcm81339 () {
   return transport.getProductName() === 'Melexis Compact Master 81339';
 }
 
-function computedMasterIsMcm81349 () {
+function computedUsbTransportIsMcm81349 () {
   return transport.getProductName() === 'Melexis Compact Master 81349';
 }
 
-function computedMasterIsMcmLin () {
+function computedUsbTransportIsMcmLin () {
   return transport.getProductName() === 'Melexis Compact Master LIN';
 }
 
@@ -204,7 +204,7 @@ function computedProductImage (productName) {
       <br>
       <h1>Home</h1>
       <div
-        v-if="computedMasterIsMcm81339() || computedMasterIsMcm81349()"
+        v-if="computedUsbTransportIsMcm81339() || computedUsbTransportIsMcm81349()"
         class="row"
       >
         <div class="col-md-8">
@@ -216,7 +216,7 @@ function computedProductImage (productName) {
         </div>
       </div>
       <div
-        v-if="computedMasterIsMcmLin()"
+        v-if="computedUsbTransportIsMcmLin()"
         class="row"
       >
         <div class="col-md-8">

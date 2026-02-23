@@ -457,8 +457,4 @@ textarea {
 input.is-invalid {
   border-color: #dc3545;
 }
-
-.font-monospace {
-  font-family: monospace;
-}
 </style>

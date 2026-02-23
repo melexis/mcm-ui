@@ -11,7 +11,7 @@ export const mcmVendorRequestPwm = {
 };
 
 export class McmPwm extends McmGeneric {
-  setup (bitrate) {
+  setup () {
     this.transport.mode = MasterMode.PWM;
     return this.transport.vendorControlTransferOut(mcmVendorRequest.PWM_COMM, mcmVendorRequestPwm.ENABLE);
   }

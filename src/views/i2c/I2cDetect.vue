@@ -12,6 +12,7 @@ import { McmI2c } from '../../js/usbMcmI2c';
 const transport = useUsbTransport();
 const mcm = new McmI2c(transport);
 
+const detecting = ref(false);
 const bitrate = ref(400000);
 const errorMsg = ref('');
 const isErrorMsg = ref(false);
@@ -25,7 +26,11 @@ const detectedMap = reactive(
 );
 
 async function doDetection () {
+  if (detecting.value) {
+    return;
+  }
   try {
+    detecting.value = true;
     progbarProgress.value = 0;
     progbarIsAnimated.value = true;
     errorMsg.value = 'Starting...';
@@ -50,9 +55,6 @@ async function doDetection () {
       detectedMap[address].found = result;
     }
 
-    await mcm.teardown();
-    await mcm.disableSlavePower();
-
     progbarProgress.value = 100;
     progbarIsAnimated.value = false;
     errorMsg.value = 'Finished successfully';
@@ -62,6 +64,10 @@ async function doDetection () {
     progbarIsAnimated.value = false;
     errorMsg.value = error.message;
     isErrorMsg.value = true;
+  } finally {
+    await mcm.teardown();
+    await mcm.disableSlavePower();
+    detecting.value = false;
   }
 }
 
@@ -176,6 +182,7 @@ function openDevice (address) {
       <button
         class="btn btn-primary"
         @click="doDetection()"
+        :disabled="detecting"
       >
         Detect
       </button>

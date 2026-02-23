@@ -114,15 +114,15 @@ export class McmLin extends McmGeneric {
     );
   }
 
-  ldDiagnostic (transport, nad, baudrate, sid, payload) {
+  ldDiagnostic (nad, baudrate, sid, payload) {
     throw new Error('method not yet implemented in MCM');
   }
 
-  ldSendMessage (transport, nad, baudrate, sid, payload) {
+  ldSendMessage (nad, baudrate, sid, payload) {
     throw new Error('method not yet implemented in MCM');
   }
 
-  ldReceiveMessage (transport, nad, baudrate, sid) {
+  ldReceiveMessage (nad, baudrate, sid) {
     throw new Error('method not yet implemented in MCM');
   }
 }
