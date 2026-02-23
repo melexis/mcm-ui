@@ -1,41 +1,57 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import { useMaster } from '../js/usbMaster';
+import { useUsbTransport } from '../js/usbTransport';
 
 const router = useRouter();
-const master = useMaster();
+const transport = useUsbTransport();
 
 function computedTitle () {
-  if (master.isSelected()) {
-    return master.getProductName();
+  if (transport.isSelected()) {
+    return transport.getProductName();
   }
   return 'Melexis Compact Master';
 }
 
-function computedHasUart () {
-  if ((master.getProductName() === 'Melexis Compact Master 81339') ||
-      (master.getProductName() === 'Melexis Compact Master 81349')) {
+function computedHasI2c () {
+  if ((transport.getProductName() === 'Melexis Compact Master 81339') ||
+      (transport.getProductName() === 'Melexis Compact Master 81349')) {
     return true;
   }
   return false;
 }
 
 function computedHasLin () {
-  if (master.getProductName() === 'Melexis Compact Master LIN') {
+  if (transport.getProductName() === 'Melexis Compact Master LIN') {
     return true;
   }
   return false;
 }
 
 function computedHasPpm () {
-  if (master.getProductName() === 'Melexis Compact Master LIN') {
+  if (transport.getProductName() === 'Melexis Compact Master LIN') {
+    return true;
+  }
+  return false;
+}
+
+function computedHasPwm () {
+  if ((transport.getProductName() === 'Melexis Compact Master 81339') ||
+      (transport.getProductName() === 'Melexis Compact Master 81349')) {
+    return true;
+  }
+  return false;
+}
+
+function computedHasUart () {
+  if ((transport.getProductName() === 'Melexis Compact Master 81339') ||
+      (transport.getProductName() === 'Melexis Compact Master 81349')) {
     return true;
   }
   return false;
 }
 
 function disconnect () {
-  master.disconnect()
+  transport.disconnect()
     .then(() => router.push('/webapp'));
 }
 </script>
@@ -60,11 +76,43 @@ function disconnect () {
         <span class="navbar-toggler-icon" />
       </button>
       <div
-        v-if="master.isSelected()"
+        v-if="transport.isSelected()"
         id="navbarContent"
         class="collapse navbar-collapse"
       >
         <ul class="navbar-nav ms-auto">
+          <li
+            v-if="computedHasI2c()"
+            class="nav-item dropdown active"
+          >
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              I2C
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <router-link
+                  class="dropdown-item"
+                  :to="{ name: 'i2c-detect' }"
+                >
+                  detect
+                </router-link>
+              </li>
+              <li>
+                <router-link
+                  class="dropdown-item"
+                  :to="{ name: 'i2c-device' }"
+                >
+                  device
+                </router-link>
+              </li>
+            </ul>
+          </li>
           <li
             v-if="computedHasLin()"
             class="nav-item dropdown active"
@@ -112,6 +160,30 @@ function disconnect () {
                 </router-link>
               </li>
             </div>
+          </li>
+          <li
+            v-if="computedHasPwm()"
+            class="nav-item dropdown active"
+          >
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              PWM
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <router-link
+                  class="dropdown-item"
+                  :to="{ name: 'pwm-controller' }"
+                >
+                  controller
+                </router-link>
+              </li>
+            </ul>
           </li>
           <li
             v-if="computedHasUart()"

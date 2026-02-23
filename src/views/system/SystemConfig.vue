@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 
 import StatusMessage from '../../components/StatusMessage.vue';
 
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 import { McmUart } from '../../js/usbMcmUart';
 
 const formEnabled = ref(false);
@@ -15,8 +15,8 @@ const statusMsg = ref('');
 const statusMsgIsError = ref(false);
 
 const currentData = {};
-const master = useMaster();
-const mcm = new McmUart(master);
+const transport = useUsbTransport();
+const mcm = new McmUart(transport);
 
 onMounted(() => {
   mcm.getHostname()

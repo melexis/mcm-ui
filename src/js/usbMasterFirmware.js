@@ -1,4 +1,4 @@
-import { mcmVendorRequest, MasterMode } from '../js/usbMaster';
+import { mcmVendorRequest, MasterMode } from '../js/usbTransport';
 
 export async function upgradeFirmware (master, fileContent, onProgress) {
   const total = fileContent.byteLength;

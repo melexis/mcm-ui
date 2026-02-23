@@ -1,4 +1,4 @@
-import { mcmVendorRequest, MasterMode } from '../js/usbMaster';
+import { mcmVendorRequest, MasterMode } from '../js/usbTransport';
 
 export async function hexfileTransfer (master, hexfile) {
   const decoder = new TextDecoder();

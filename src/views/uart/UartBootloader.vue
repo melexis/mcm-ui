@@ -6,7 +6,7 @@ import ProgressBar from '../../components/ProgressBar.vue';
 import StatusMessage from '../../components/StatusMessage.vue';
 
 import { getFileContent } from '../../js/fileHandlers';
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 import { McmUart } from '../../js/usbMcmUart';
 
 const manualPower = ref(false);
@@ -24,8 +24,8 @@ const progbarIsAnimated = ref(false);
 const flashKeys = [0, 0, 0, 0];
 const flashKeyError = ref(false);
 
-const master = useMaster();
-const mcm = new McmUart(master);
+const transport = useUsbTransport();
+const mcm = new McmUart(transport);
 
 function onFlashKeyChange () {
   flashKeys[0] = 0;

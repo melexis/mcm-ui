@@ -1,7 +1,7 @@
 <script setup>
 import { onBeforeUnmount, ref } from 'vue';
 
-import { useMaster, MasterMode } from '../../js/usbMaster';
+import { useUsbTransport, MasterMode } from '../../js/usbTransport';
 import { McmLin } from '../../js/usbMcmLin';
 
 import { LinScript, frameTypeWakeUp, frameTypeS2M, frameTypeM2S } from '../../js/linScript';
@@ -21,8 +21,8 @@ const delayTime = ref(50);
 let linScript = null;
 let schedulePosition = 0;
 
-const master = useMaster();
-const mcm = new McmLin(master);
+const transport = useUsbTransport();
+const mcm = new McmLin(transport);
 
 onBeforeUnmount(() => {
   mcm.teardown();
@@ -55,7 +55,7 @@ function onLoadFile () {
 }
 
 async function handleSequence (seqNr, frameNr = 0) {
-  if (mcm.master.mode !== MasterMode.LIN) {
+  if (mcm.transport.mode !== MasterMode.LIN) {
     logInfo('Connecting...');
     await mcm.setup();
   }

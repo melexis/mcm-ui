@@ -4,7 +4,7 @@ import { ref, onMounted } from 'vue';
 import StatusMessage from '../../components/StatusMessage.vue';
 import StatusSpinner from '../../components/StatusSpinner.vue';
 
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 import { McmUart } from '../../js/usbMcmUart';
 
 const systemVersionsReceived = ref(false);
@@ -22,22 +22,22 @@ const wifiIp4Address = ref('');
 const wifiIp4Netmask = ref('');
 const wifiIp4Gateway = ref('');
 
-const master = useMaster();
-const mcm = new McmUart(master);
+const transport = useUsbTransport();
+const mcm = new McmUart(transport);
 
 onMounted(() => {
-  master.getVersion()
+  transport.getVersion()
     .then((version) => {
       firmwareVersion.value = version;
       return mcm.getHostname();
     })
     .then((name) => {
       hostname.value = name;
-      return master.getResetReason();
+      return transport.getResetReason();
     })
     .then((reason) => {
       resetReason.value = reason;
-      return master.getUpTime();
+      return transport.getUpTime();
     })
     .then((time) => {
       upTime.value = usecToTime(time);
@@ -93,7 +93,7 @@ function usecToTime (usec) {
       <br>
       <h1>System Details</h1>
       <p
-        v-if="!systemVersionsReceived || !systemNetworkReceived || !master.isConnected()"
+        v-if="!systemVersionsReceived || !systemNetworkReceived || !transport.isConnected()"
         class="list-unstyled"
       >
         <StatusMessage
@@ -108,14 +108,14 @@ function usecToTime (usec) {
         />
       </p>
       <ul
-        v-if="systemVersionsReceived && systemNetworkReceived && master.isConnected()"
+        v-if="systemVersionsReceived && systemNetworkReceived && transport.isConnected()"
         class="list-unstyled"
       >
         <li><b>Version Information</b></li>
         <ul>
-          <li>Type: {{ master.device.productName }}</li>
+          <li>Type: {{ transport.device.productName }}</li>
           <li>Firmware version: {{ firmwareVersion }}</li>
-          <li>Serial number: {{ master.device.serialNumber }}</li>
+          <li>Serial number: {{ transport.device.serialNumber }}</li>
           <li>Last reset reason: {{ resetReason }}</li>
           <li>Up time: {{ upTime }}</li>
         </ul>

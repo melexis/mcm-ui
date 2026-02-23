@@ -8,7 +8,7 @@ import router from './router';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 
-import { MasterPlugin } from './js/usbMaster';
+import { UsbTransportPlugin } from './js/usbTransport';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faLink, faLinkSlash, faEyeSlash, faEye, faPlay, faStop, faTrashCan } from '@fortawesome/free-solid-svg-icons';
@@ -24,6 +24,6 @@ app.component('FontAwesomeIcon', FontAwesomeIcon);
 
 app.use(router);
 app.use(VueAxios, axios);
-app.use(MasterPlugin);
+app.use(UsbTransportPlugin);
 
 app.mount('#app');

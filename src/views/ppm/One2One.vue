@@ -5,7 +5,7 @@ import ProgressBar from '../../components/ProgressBar.vue';
 import StatusMessage from '../../components/StatusMessage.vue';
 
 import { getFileContent } from '../../js/fileHandlers';
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 import { McmLin } from '../../js/usbMcmLin';
 
 const products = ref([
@@ -76,8 +76,8 @@ const isErrorMsg = ref(false);
 const progbarProgress = ref(0);
 const progbarIsAnimated = ref(false);
 
-const master = useMaster();
-const mcm = new McmLin(master);
+const transport = useUsbTransport();
+const mcm = new McmLin(transport);
 
 function setErrorMessage (msg, isError = true) {
   errorMsg.value = msg;
