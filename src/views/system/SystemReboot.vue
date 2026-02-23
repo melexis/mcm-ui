@@ -2,12 +2,12 @@
 import { ref, onMounted } from 'vue';
 
 import { useRouter } from 'vue-router';
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 
 const timeLeft = ref(10);
 const wait = ref('.');
 
-const master = useMaster();
+const transport = useUsbTransport();
 const router = useRouter();
 
 const timer = setInterval(function () {
@@ -22,7 +22,7 @@ const timer = setInterval(function () {
   }
 }, 250);
 onMounted(function () {
-  master.restart();
+  transport.restart();
 });
 </script>
 

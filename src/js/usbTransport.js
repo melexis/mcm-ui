@@ -1,9 +1,9 @@
 import { reactive, inject } from 'vue';
 
-import { upgradeFirmware } from '../js/usbMasterFirmware';
-import { hexfileTransfer } from '../js/usbMasterHexTransfer';
+import { upgradeFirmware } from './usbMasterFirmware';
+import { hexfileTransfer } from './usbMasterHexTransfer';
 
-const MasterSymbol = Symbol('Master');
+const UsbTransportSymbol = Symbol('UsbTransport');
 
 const VENDOR_SPECIFIC_CLASS = 0xFF;
 
@@ -16,6 +16,7 @@ export const mcmVendorRequest = {
   BARE_UART_MODE: 0x20,
   PWM_COMM: 0x21,
   LIN_COMM: 0x22,
+  I2C_COMM: 0x23,
   BOOTLOADER_DO_TRANSFER: 0x30,
   BOOTLOADER_DO: 0x31,
   BOOTLOADER_UART: 0x32,
@@ -28,6 +29,8 @@ export const mcmVendorRequest = {
 
 /** Message ID constants used in bulk MLX messages. */
 export const mcmMlxMessageId = {
+  UART_DO_BTL_ACTION: 0x3200,
+  UART_READ_PROJECT_INFO: 0x3201,
   PPM_DO_BTL_ACTION: 0x3300,
   MCM_BULK_MSG_ERROR_REPORT: 0xFFFF,
 };
@@ -39,11 +42,13 @@ const MCM_INFO_UP_TIME = 0x02;
 /** Operating modes for the Master. */
 export const MasterMode = {
   NONE: null,
-  LIN: 'lin',
   BARE: 'bare',
   BOOTLOADER: 'bootloader',
-  HEXTRANSFER: 'hextransfer',
   ERROR: 'error',
+  HEXTRANSFER: 'hextransfer',
+  I2C: 'i2c',
+  LIN: 'lin',
+  PWM: 'pwm',
 };
 
 /** Reset reasons for ESP32 devices. */
@@ -124,7 +129,7 @@ export function calculate16BitCrc (data, initValue) {
   return crc & 0xFFFF;
 }
 
-export class Master {
+export class UsbTransport {
   constructor () {
     // These properties will be wrapped in a reactive object later
     this.state = reactive({
@@ -173,11 +178,15 @@ export class Master {
     this.state._mode = MasterMode.NONE;
   }
 
-  /** Inject a USBDevice object into the Master. */
+  /** Inject a USBDevice object. */
   setDevice (device) {
     this.state._device = device;
   }
 
+  /** USB device communicating through.
+   *
+   * @type {USBDevice}
+   */
   get device () {
     return this.state._device;
   }
@@ -430,21 +439,29 @@ export class Master {
    * received.
    */
   async stopBulkReceiver () {
-    this.state.bulkReceiverAbort?.abort();
+    this.announceStopBulkReceiver();
     const forceClose = this.state._device;
     if (this.state.bulkReceiverRunning) {
-      setTimeout(() => {
-        if (this.state.bulkReceiverRunning) {
-          if (forceClose?.opened) {
-            try {
-              forceClose.close();
-            } catch {}
-          }
+      await new Promise(resolve => setTimeout(resolve, 300));
+      if (this.state.bulkReceiverRunning) {
+        if (forceClose?.opened) {
+          try {
+            forceClose.close();
+          } catch {}
         }
-      }, 300);
+      }
     }
     this.state.bulkReceiverAbort = null;
     this.mode = MasterMode.NONE;
+  }
+
+  /** Announce to the bulk receiver process that we are going to stop it
+   *
+   * Sometimes it might be needed to announce upfront as this.vendorTransferIn()
+   * will block the usb device if no data comes in anymore...
+   */
+  announceStopBulkReceiver () {
+    this.state.bulkReceiverAbort?.abort();
   }
 
   /** Request the connected hardware to identify itself.
@@ -579,24 +596,24 @@ export class Master {
   }
 }
 
-export const MasterPlugin = {
+export const UsbTransportPlugin = {
   install (app) {
-    const masterInstance = new Master();
-    app.provide(MasterSymbol, masterInstance);
+    const usbTransportInstance = new UsbTransport();
+    app.provide(UsbTransportSymbol, usbTransportInstance);
 
     app.unmount = ((originalUnmount) => {
       return function () {
-        masterInstance.dispose();
+        usbTransportInstance.dispose();
         originalUnmount.call(this);
       };
     })(app.unmount);
   }
 };
 
-export function useMaster () {
-  const master = inject(MasterSymbol);
-  if (!master) {
-    throw new Error('useMaster must be used within the app that installed the MasterPlugin');
+export function useUsbTransport () {
+  const usbTransport = inject(UsbTransportSymbol);
+  if (!usbTransport) {
+    throw new Error('useUsbTransport must be used within the app that installed the UsbTransportPlugin');
   }
-  return master;
+  return usbTransport;
 }

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useMaster } from '../js/usbMaster';
+import { useUsbTransport } from '../js/usbTransport';
 
 const routes = [
   {
@@ -20,6 +20,40 @@ const routes = [
         name: 'terms-of-use',
         component: () =>
           import(/* webpackChunkName: "app" */ '@/views/TermsOfUse.vue'),
+      },
+      {
+        path: 'i2c',
+        meta: { requiresMaster: true },
+        children: [
+          {
+            path: '',
+            name: 'i2c',
+            redirect: { name: 'i2c-detect' },
+          },
+          {
+            path: 'detect',
+            name: 'i2c-detect',
+            component: () =>
+              import(/* webpackChunkName: "app" */ '@/views/i2c/I2cDetect.vue'),
+          },
+          {
+            path: 'device',
+            children: [
+              {
+                path: '',
+                name: 'i2c-device',
+                component: () =>
+                  import(/* webpackChunkName: "app" */ '@/views/i2c/I2cDevice.vue'),
+              },
+              {
+                path: ':address',
+                name: 'i2c-device-addressed',
+                component: () =>
+                  import(/* webpackChunkName: "app" */ '@/views/i2c/I2cDevice.vue'),
+              },
+            ],
+          },
+        ],
       },
       {
         path: 'lin',
@@ -52,6 +86,23 @@ const routes = [
             name: 'ppm-one2one',
             component: () =>
               import(/* webpackChunkName: "app" */ '@/views/ppm/One2One.vue'),
+          },
+        ],
+      },
+      {
+        path: 'pwm',
+        meta: { requiresMaster: true },
+        children: [
+          {
+            path: '',
+            name: 'pwm',
+            redirect: { name: 'pwm-controller' },
+          },
+          {
+            path: 'controller',
+            name: 'pwm-controller',
+            component: () =>
+              import(/* webpackChunkName: "app" */ '@/views/pwm/PwmController.vue'),
           },
         ],
       },
@@ -124,8 +175,8 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.meta.requiresMaster) {
-    const master = await useMaster();
-    if (!master.isSelected()) {
+    const transport = await useUsbTransport();
+    if (!transport.isSelected()) {
       return {
         path: '/webapp',
         query: { redirect: to.path },

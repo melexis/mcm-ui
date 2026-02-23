@@ -1,7 +1,7 @@
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue';
 
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 import { McmUart, MCM_UART_RAW_DATA_BITS, MCM_UART_RAW_STOP_BITS, MCM_UART_RAW_PARITY } from '../../js/usbMcmUart';
 
 import ModalWindow from '../../components/ModalWindow.vue';
@@ -20,8 +20,8 @@ const shouldAutoScroll = ref(true);
 
 const showModal = ref(false);
 
-const master = useMaster();
-const mcm = new McmUart(master);
+const transport = useUsbTransport();
+const mcm = new McmUart(transport);
 
 const onScroll = () => {
   const el = logContainer.value;

@@ -1,10 +1,5 @@
-import { concatUint8Arrays, convertUint32ToUint8Array, MasterMode, mcmVendorRequest } from '../js/usbMaster';
-
-const MCM_CONFIG_HOSTNAME = 0x00;
-const MCM_CONFIG_WIFI_SSID = 0x01;
-const MCM_CONFIG_WIFI_PASS = 0x02;
-const MCM_CONFIG_WIFI_MAC = 0x03;
-const MCM_CONFIG_WIFI_IP_INFO = 0x04;
+import { McmGeneric } from './usbMcmGeneric';
+import { concatUint8Arrays, convertUint32ToUint8Array, MasterMode, mcmVendorRequest } from './usbTransport';
 
 const MEMORY_FLASH = 1;
 const MEMORY_NVRAM = 0;
@@ -36,18 +31,6 @@ export const MCM_UART_RAW_PARITY = [
 let rxBareUartBuffer = new Uint8Array([]);
 let rxBareUartCallback = null;
 
-function convertStringToBytes (string) {
-  const strBytes = new TextEncoder().encode(string);
-  const retval = new Uint8Array(strBytes.length + 1);
-  retval.set(strBytes, 0);
-  retval.set([0], retval.length - 1);
-  return retval;
-}
-
-function decodeUsbString (response) {
-  return new TextDecoder().decode(response).replace(/\0.*$/, '');
-}
-
 function bulkRxCallbackBareUart (data) {
   rxBareUartBuffer = concatUint8Arrays(rxBareUartBuffer, data);
   if (typeof (rxBareUartCallback) === 'function') {
@@ -58,45 +41,7 @@ function bulkRxCallbackBareUart (data) {
   }
 }
 
-function uint32ToIpString (u32) {
-  return [
-    u32 & 0xFF,
-    (u32 >> 8) & 0xFF,
-    (u32 >> 16) & 0xFF,
-    (u32 >> 24) & 0xFF
-  ].join('.');
-}
-
-export class McmUart {
-  constructor (master) {
-    this.master = master;
-  }
-
-  /** Disable power to slave devices.
-   *
-   * @returns {Promise<any>}
-   */
-  disableSlavePower () {
-    return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 0);
-  }
-
-  /** Enable power to slave devices.
-   *
-   * @returns {Promise<any>}
-   */
-  enableSlavePower () {
-    return this.master.vendorControlTransferOut(mcmVendorRequest.SLAVE_CTRL, 1);
-  }
-
-  /** Check if slave power is enabled.
-   *
-   * @returns {Promise<boolean>}
-   */
-  async isSlavePowerEnabled () {
-    const response = await this.master.vendorControlTransferIn(mcmVendorRequest.SLAVE_CTRL, 0, 255);
-    return response[0] === 1;
-  }
-
+export class McmUart extends McmGeneric {
   /** Disable bare UART mode.
    *
    * @returns {Promise<void>} Resolves when bare UART mode was disabled.
@@ -104,8 +49,9 @@ export class McmUart {
   async disableBareUartMode () {
     rxBareUartBuffer = new Uint8Array([]);
     rxBareUartCallback = null;
-    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 0);
-    await this.master.stopBulkReceiver();
+    this.transport.announceStopBulkReceiver();
+    await this.transport.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 0);
+    await this.transport.stopBulkReceiver();
   }
 
   /** Enable bare UART mode for raw communication.
@@ -126,9 +72,13 @@ export class McmUart {
     payload[5] = MCM_UART_RAW_STOP_BITS.indexOf(stopBits); // number of stop bits (1:1bit; 2:1.5bit; 3:2bits)
     payload[6] = MCM_UART_RAW_PARITY.indexOf(parity); // parity type (0:disabled; 2:even; 3:odd)
     payload[7] = halfDuplex ? 1 : 0; // 1: use half duplex communication
-    this.master.startBulkReceiver(MasterMode.BARE, bulkRxCallbackBareUart);
+    this.transport.startBulkReceiver(MasterMode.BARE, bulkRxCallbackBareUart);
     rxBareUartBuffer = new Uint8Array([]);
-    await this.master.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
+    await this.transport.vendorControlTransferOut(mcmVendorRequest.BARE_UART_MODE, 1, payload);
+  }
+
+  get bareUartModeEnabled () {
+    return this.transport.mode === MasterMode.BARE;
   }
 
   /** Send raw data to the device in bare UART mode.
@@ -138,10 +88,10 @@ export class McmUart {
    * @throws {Error} If the device is not in bare UART mode.
    */
   async writeToBareUart (data) {
-    if (this.master.mode !== MasterMode.BARE) {
+    if (this.transport.mode !== MasterMode.BARE) {
       throw new Error('device needs to be put in bare uart mode first');
     }
-    await this.master.vendorTransferOut(data);
+    await this.transport.vendorTransferOut(data);
   }
 
   /** Receive raw data from the device in bare UART mode.
@@ -151,7 +101,7 @@ export class McmUart {
    * @throws {Error} If the device is not in bare UART mode.
    */
   async receiveFromBareUart (length) {
-    if (this.master.mode !== MasterMode.BARE) {
+    if (this.transport.mode !== MasterMode.BARE) {
       throw new Error('device needs to be put in bare uart mode first');
     }
     if (length >= rxBareUartBuffer.length) {
@@ -181,7 +131,7 @@ export class McmUart {
       throw new Error('flashKeys must be an array of 4 values');
     }
 
-    if (this.master.mode !== MasterMode.NONE) {
+    if (this.transport.mode !== MasterMode.NONE) {
       await this.disableBareUartMode();
     }
 
@@ -191,7 +141,7 @@ export class McmUart {
       let buffer = '';
       const stopTime = Date.now() + timeout;
       while (Date.now() < stopTime) {
-        const chunk = await this.master.vendorTransferIn();
+        const chunk = await this.transport.vendorTransferIn();
         buffer += decoder.decode(chunk);
         const newlineCharIndex = buffer.indexOf('\n');
         if (newlineCharIndex >= 0) {
@@ -209,7 +159,7 @@ export class McmUart {
     };
 
     // transfer hex file
-    await this.master.doHexfileTransfer(hexfile);
+    await this.transport.doHexfileTransfer(hexfile);
 
     const payload = new Uint8Array(28);
     payload.set(convertUint32ToUint8Array(bitRate), 0); // baudrate to be used during bootloader operations
@@ -227,72 +177,14 @@ export class McmUart {
     payload[27] = 0; // reserved
 
     try {
-      this.master.mode = MasterMode.BOOTLOADER;
+      this.transport.mode = MasterMode.BOOTLOADER;
 
       // do bootloading action
-      await this.master.vendorControlTransferOut(mcmVendorRequest.BOOTLOADER_DO, 0, payload);
+      await this.transport.vendorControlTransferOut(mcmVendorRequest.BOOTLOADER_DO, 0, payload);
 
       await waitBootloadDone(60000);
     } finally {
-      this.master.mode = MasterMode.NONE;
+      this.transport.mode = MasterMode.NONE;
     }
-  }
-
-  setConfig (index, string) {
-    const payload = convertStringToBytes(string);
-    return this.master.vendorControlTransferOut(mcmVendorRequest.CONFIG, index, payload);
-  }
-
-  async getConfig (index) {
-    const response = await this.master.vendorControlTransferIn(mcmVendorRequest.CONFIG, index, 255);
-    return decodeUsbString(response);
-  }
-
-  setHostname (hostname) {
-    return this.setConfig(MCM_CONFIG_HOSTNAME, hostname);
-  }
-
-  getHostname () {
-    return this.getConfig(MCM_CONFIG_HOSTNAME);
-  }
-
-  setSsid (ssid) {
-    return this.setConfig(MCM_CONFIG_WIFI_SSID, ssid);
-  }
-
-  getSsid () {
-    return this.getConfig(MCM_CONFIG_WIFI_SSID);
-  }
-
-  setPassword (password) {
-    return this.setConfig(MCM_CONFIG_WIFI_PASS, password);
-  }
-
-  getPassword () {
-    return this.getConfig(MCM_CONFIG_WIFI_PASS);
-  }
-
-  async getMac () {
-    const response = await this.master.vendorControlTransferIn(mcmVendorRequest.CONFIG, MCM_CONFIG_WIFI_MAC, 255);
-    let retval = '';
-    for (let i = 0; i < 6; i++) {
-      retval += `${response[i].toString(16).padStart(2, '0')}:`;
-    }
-    return retval.slice(0, -1);
-  }
-
-  async getIpInfo () {
-    const response = await this.master.vendorControlTransferIn(mcmVendorRequest.CONFIG, MCM_CONFIG_WIFI_IP_INFO, 255);
-    const info = {};
-    if (response.length > 0) {
-      info.link_up = true;
-      const u32Resp = new Uint32Array(response.buffer);
-      info.ip = uint32ToIpString(u32Resp[0]);
-      info.netmask = uint32ToIpString(u32Resp[1]);
-      info.gateway = uint32ToIpString(u32Resp[2]);
-    } else {
-      info.link_up = false;
-    }
-    return info;
   }
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import { useMaster } from '../js/usbMaster';
+import { useUsbTransport } from '../js/usbTransport';
 
 import Mcm81339Image from '../../static/MCM-81339.png';
 import Mcm81349Image from '../../static/MCM-81349.png';
@@ -11,7 +11,7 @@ import MlxLogoImage from '../../static/logo.png';
 const router = useRouter();
 const route = useRoute();
 const usbDevices = ref();
-const master = useMaster();
+const transport = useUsbTransport();
 const hasForget = ref(false);
 const hasWebUsb = ref(false);
 
@@ -23,7 +23,7 @@ onMounted(() => {
       hasForget.value = true;
     }
 
-    if (!master.isSelected()) {
+    if (!transport.isSelected()) {
       navigator.usb.getDevices().then(devices => {
         usbDevices.value = devices;
       });
@@ -77,11 +77,11 @@ function requestDevice () {
 }
 
 function onMcmClick (device) {
-  master.setDevice(device);
+  transport.setDevice(device);
   if (typeof (route.redirectedFrom) !== 'undefined' && route.redirectedFrom.path !== '/') {
     router.push(route.redirectedFrom.path);
   } else {
-    master.identify()
+    transport.identify()
       .catch((error) => (console.log(error.message)));
   }
 }
@@ -104,15 +104,15 @@ function computedHasUsbDevices () {
 }
 
 function computedMasterIsMcm81339 () {
-  return master.getProductName() === 'Melexis Compact Master 81339';
+  return transport.getProductName() === 'Melexis Compact Master 81339';
 }
 
 function computedMasterIsMcm81349 () {
-  return master.getProductName() === 'Melexis Compact Master 81349';
+  return transport.getProductName() === 'Melexis Compact Master 81349';
 }
 
 function computedMasterIsMcmLin () {
-  return master.getProductName() === 'Melexis Compact Master LIN';
+  return transport.getProductName() === 'Melexis Compact Master LIN';
 }
 
 function computedProductImage (productName) {
@@ -140,7 +140,7 @@ function computedProductImage (productName) {
     </div>
   </div>
   <div
-    v-if="!master.isSelected() && hasWebUsb"
+    v-if="!transport.isSelected() && hasWebUsb"
     class="row"
   >
     <div class="container">
@@ -197,7 +197,7 @@ function computedProductImage (productName) {
     </div>
   </div>
   <div
-    v-if="master.isSelected() && hasWebUsb"
+    v-if="transport.isSelected() && hasWebUsb"
     class="row"
   >
     <div class="container">
@@ -212,7 +212,7 @@ function computedProductImage (productName) {
           <p>The device is for development only.</p>
         </div>
         <div class="col-md-4">
-          <img :src="computedProductImage(master.getProductName())">
+          <img :src="computedProductImage(transport.getProductName())">
         </div>
       </div>
       <div

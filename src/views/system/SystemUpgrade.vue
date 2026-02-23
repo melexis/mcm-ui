@@ -6,9 +6,9 @@ import { gt } from 'semver';
 import ProgressBar from '../../components/ProgressBar.vue';
 import StatusMessage from '../../components/StatusMessage.vue';
 
-import { useMaster } from '../../js/usbMaster';
+import { useUsbTransport } from '../../js/usbTransport';
 
-const master = useMaster();
+const transport = useUsbTransport();
 const working = ref(false);
 const statusMsg = ref('');
 const statusMsgIsError = ref(false);
@@ -31,9 +31,9 @@ let firmwareBaseName = '';
 const firmwareNewRev = ref('');
 
 onMounted(() => {
-  firmwareBaseName = firmwareBaseNames[master.getProductName()];
+  firmwareBaseName = firmwareBaseNames[transport.getProductName()];
   firmwareNewRev.value = firmwareLatestRev[firmwareBaseName];
-  master.getVersion()
+  transport.getVersion()
     .then((version) => {
       firmwareVersion.value = version;
       try {
@@ -64,14 +64,14 @@ function upgradeClicked () {
       })
     .then((response) => {
       statusMsg.value = 'Transferring binary...';
-      return master.upgradeFirmware(response.data, progressCallback);
+      return transport.upgradeFirmware(response.data, progressCallback);
     })
     .then(() => {
       statusMsg.value = 'Upgrade successful';
       progbarProgress.value = 100;
       progbarIsAnimated.value = false;
       working.value = false;
-      return master.disconnect();
+      return transport.disconnect();
     })
     .catch((error) => {
       console.log(error);
