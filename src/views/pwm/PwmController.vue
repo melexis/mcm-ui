@@ -89,9 +89,10 @@ async function updateStatus () {
 
   if (errorCount > 0) {
     errorCount -= 1;
-  } else {
-    isErrorMsg.value = false;
-    errorMsg.value = '';
+    if (errorCount === 0) {
+      isErrorMsg.value = false;
+      errorMsg.value = '';
+    }
   }
 }
 </script>
