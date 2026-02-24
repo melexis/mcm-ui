@@ -1,9 +1,11 @@
 import { McmGeneric } from './usbMcmGeneric';
 import { convertUint16ToUint8Array, convertUint32ToUint8Array, MasterMode, mcmMlxMessageId, mcmVendorRequest } from './usbTransport';
 
-const MEMORY_FLASH = 1;
-const MEMORY_NVRAM = 0;
-
+const BTL_MEMORY = {
+  nvram: 0,
+  flash: 1,
+  flash_cs: 2,
+};
 const OPP_PROGRAM = 0;
 const OPP_VERIFY = 1;
 
@@ -37,6 +39,11 @@ export class McmLin extends McmGeneric {
       await this.disableLinMode();
     }
 
+    const memType = BTL_MEMORY[memory.toLowerCase()];
+    if (memType === undefined) {
+      throw new Error(`Unknown memory type: "${memory}". Valid types: ${Object.keys(BTL_MEMORY).join(', ')}`);
+    }
+
     // transfer hex file
     await this.transport.doHexfileTransfer(hexfile);
 
@@ -44,7 +51,7 @@ export class McmLin extends McmGeneric {
     payload.set(convertUint32ToUint8Array(bitRate), 0); // baudrate to be used during bootloader operations
     payload[4] = manualPower ? 1 : 0; // 1: manual power cycling
     payload[5] = broadcast ? 1 : 0; // 1: bootloading shall be done in broadcast mode
-    payload[6] = memory.toLowerCase() === 'flash' ? MEMORY_FLASH : MEMORY_NVRAM; // memory type to perform action on (0: NVRAM; 1: flash)
+    payload[6] = memType; // memory type to perform action on (0: NVRAM; 1: flash; 2=flash_cs)
     payload[7] = operation.toLowerCase() === 'program' ? OPP_PROGRAM : OPP_VERIFY; // action type to perform (0: program; 1: verify)
 
     try {

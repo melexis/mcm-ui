@@ -11,6 +11,8 @@ const mcm = new McmPwm(transport);
 
 const errorMsg = ref('');
 const isErrorMsg = ref(false);
+let errorCount = 0;
+const ERROR_DISPLAY_POLLS = 10; /* 10 × 250 ms = 2.5 s */
 
 const pwmFrequency = ref(1000);
 const pwmDutyCycle = ref(0);
@@ -34,6 +36,7 @@ onMounted(async () => {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 });
 
@@ -51,6 +54,7 @@ async function updateDutyCycle () {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 }
 
@@ -60,6 +64,7 @@ async function updateFrequency () {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 }
 
@@ -81,6 +86,14 @@ async function updateStatus () {
     }
   } catch {
     /* silent polling error (optional) */
+  }
+
+  if (errorCount > 0) {
+    errorCount -= 1;
+    if (errorCount === 0) {
+      isErrorMsg.value = false;
+      errorMsg.value = '';
+    }
   }
 }
 </script>
@@ -163,12 +176,6 @@ async function updateStatus () {
               Live Status
             </h5>
 
-            <StatusMessage
-              :is-error="isErrorMsg"
-              :message="errorMsg"
-              class="mb-3"
-            />
-
             <div class="status-grid">
               <div class="status-label">
                 PWM Frequency
@@ -191,6 +198,12 @@ async function updateStatus () {
                 {{ pwmStatFgFrequency ?? '--' }} Hz
               </div>
             </div>
+
+            <StatusMessage
+              :is-error="isErrorMsg"
+              :message="errorMsg"
+              class="mb-3"
+            />
           </div>
         </div>
       </div>
