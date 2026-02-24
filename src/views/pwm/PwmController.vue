@@ -12,6 +12,7 @@ const mcm = new McmPwm(transport);
 const errorMsg = ref('');
 const isErrorMsg = ref(false);
 let errorCount = 0;
+const ERROR_DISPLAY_POLLS = 10; /* 10 × 250 ms = 2.5 s */
 
 const pwmFrequency = ref(1000);
 const pwmDutyCycle = ref(0);
@@ -35,7 +36,7 @@ onMounted(async () => {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
-    errorCount = 10;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 });
 
@@ -53,7 +54,7 @@ async function updateDutyCycle () {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
-    errorCount = 10;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 }
 
@@ -63,7 +64,7 @@ async function updateFrequency () {
   } catch (error) {
     isErrorMsg.value = true;
     errorMsg.value = error.message;
-    errorCount = 10;
+    errorCount = ERROR_DISPLAY_POLLS;
   }
 }
 
