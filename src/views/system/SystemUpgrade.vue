@@ -25,7 +25,7 @@ const firmwareBaseNames = {
 const firmwareLatestRev = {
   'mcm-81339': 'v0.29.0',
   'mcm-81349': 'v0.29.0',
-  'mcm-lin': 'v0.4.0',
+  'mcm-lin': 'v0.5.0',
 };
 let firmwareBaseName = '';
 const firmwareNewRev = ref('');
