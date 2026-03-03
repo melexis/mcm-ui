@@ -23,8 +23,8 @@ const firmwareBaseNames = {
   'Melexis Compact Master LIN': 'mcm-lin',
 };
 const firmwareLatestRev = {
-  'mcm-81339': 'v0.29.0',
-  'mcm-81349': 'v0.29.0',
+  'mcm-81339': 'v0.30.0',
+  'mcm-81349': 'v0.30.0',
   'mcm-lin': 'v0.5.0',
 };
 let firmwareBaseName = '';
